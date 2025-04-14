@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}基础信息管理 - 校园管理系统{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-info-circle mr-2"></i>基础信息管理</h2>
+        <div>
+            <span class="text-muted">今天是：</span>
+            <span id="current-date" class="font-weight-bold"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- 学院管理 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-primary-light mx-auto">
+                        <i class="fas fa-university text-white"></i>
+                    </div>
+                    <h5 class="module-title">学院管理</h5>
+                    <p class="card-text">管理学校的学院信息</p>
+                    <a href="{{ url_for('system.colleges') }}" class="btn btn-sm btn-outline-primary">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 教师管理 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-success-light mx-auto">
+                        <i class="fas fa-chalkboard-teacher text-white"></i>
+                    </div>
+                    <h5 class="module-title">教师管理</h5>
+                    <p class="card-text">管理教师信息和职称</p>
+                    <a href="{{ url_for('admin.teachers') }}" class="btn btn-sm btn-outline-success">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 学生管理 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-info-light mx-auto">
+                        <i class="fas fa-user-graduate text-white"></i>
+                    </div>
+                    <h5 class="module-title">学生管理</h5>
+                    <p class="card-text">管理学生基本信息</p>
+                    <a href="{{ url_for('system.students') }}" class="btn btn-sm btn-outline-info">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 班级管理 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-warning-light mx-auto">
+                        <i class="fas fa-users text-white"></i>
+                    </div>
+                    <h5 class="module-title">班级管理</h5>
+                    <p class="card-text">管理班级信息和班主任</p>
+                    <a href="{{ url_for('system.classes') }}" class="btn btn-sm btn-outline-warning">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 专业管理 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-danger-light mx-auto">
+                        <i class="fas fa-graduation-cap text-white"></i>
+                    </div>
+                    <h5 class="module-title">专业管理</h5>
+                    <p class="card-text">管理专业信息和课程</p>
+                    <a href="{{ url_for('system.majors') }}" class="btn btn-sm btn-outline-danger">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 部门管理 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-secondary-light mx-auto">
+                        <i class="fas fa-building text-white"></i>
+                    </div>
+                    <h5 class="module-title">部门管理</h5>
+                    <p class="card-text">管理学校部门信息</p>
+                    <a href="{{ url_for('admin.departments') }}" class="btn btn-sm btn-outline-secondary">进入</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 显示当前日期
+    document.getElementById('current-date').textContent = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+</script>
+{% endblock %}

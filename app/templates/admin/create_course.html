@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+
+{% block title %}添加课程 - 校园管理系统{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between mb-4">
+        <h2 class="mb-0"><i class="fas fa-book me-2"></i>添加课程</h2>
+        <a href="{{ url_for('admin.courses') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>返回课程列表
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin.create_course') }}">
+                {{ form.csrf_token }}
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            {{ form.code.label(class="form-label") }}
+                            {{ form.code(class="form-control" + (" is-invalid" if form.code.errors else "")) }}
+                            {% if form.code.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.code.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text text-muted">例如: CS101, MATH202</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            {{ form.name.label(class="form-label") }}
+                            {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+                            {% if form.name.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="form-group mb-3">
+                            {{ form.credits.label(class="form-label") }}
+                            {{ form.credits(class="form-control" + (" is-invalid" if form.credits.errors else ""), type="number") }}
+                            {% if form.credits.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.credits.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group mb-3">
+                            {{ form.hours.label(class="form-label") }}
+                            {{ form.hours(class="form-control" + (" is-invalid" if form.hours.errors else ""), type="number") }}
+                            {% if form.hours.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.hours.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group mb-3">
+                            {{ form.capacity.label(class="form-label") }}
+                            {{ form.capacity(class="form-control" + (" is-invalid" if form.capacity.errors else ""), type="number") }}
+                            {% if form.capacity.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.capacity.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            {{ form.teacher_id.label(class="form-label") }}
+                            {{ form.teacher_id(class="form-select" + (" is-invalid" if form.teacher_id.errors else "")) }}
+                            {% if form.teacher_id.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.teacher_id.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            {{ form.semester.label(class="form-label") }}
+                            {{ form.semester(class="form-select" + (" is-invalid" if form.semester.errors else "")) }}
+                            {% if form.semester.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.semester.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            {{ form.location.label(class="form-label") }}
+                            {{ form.location(class="form-control" + (" is-invalid" if form.location.errors else "")) }}
+                            {% if form.location.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.location.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text text-muted">例如: 教学楼A 101教室</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            {{ form.status.label(class="form-label") }}
+                            {{ form.status(class="form-select" + (" is-invalid" if form.status.errors else "")) }}
+                            {% if form.status.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.status.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    {{ form.schedule.label(class="form-label") }}
+                    {{ form.schedule(class="form-control" + (" is-invalid" if form.schedule.errors else "")) }}
+                    {% if form.schedule.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.schedule.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="form-text text-muted">例如: 周一 10:00-12:00, 周三 13:30-15:30</div>
+                </div>
+
+                <div class="form-group mb-4">
+                    {{ form.description.label(class="form-label") }}
+                    {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows=3) }}
+                    {% if form.description.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.description.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label">选课类型与要求</label>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            {{ form.course_type.label(class="form-label") }}
+                                            {{ form.course_type(class="form-select" + (" is-invalid" if form.course_type.errors else "")) }}
+                                            {% if form.course_type.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form.course_type.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            {{ form.prerequisites.label(class="form-label") }}
+                                            {{ form.prerequisites(class="form-control" + (" is-invalid" if form.prerequisites.errors else "")) }}
+                                            {% if form.prerequisites.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form.prerequisites.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text text-muted">多个先修课程ID，用逗号分隔</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            {{ form.allow_selection.label(class="form-label") }}
+                                            {{ form.allow_selection(class="form-select" + (" is-invalid" if form.allow_selection.errors else "")) }}
+                                            {% if form.allow_selection.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form.allow_selection.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            {{ form.target_grade.label(class="form-label") }}
+                                            {{ form.target_grade(class="form-select" + (" is-invalid" if form.target_grade.errors else "")) }}
+                                            {% if form.target_grade.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in form.target_grade.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex">
+                    {{ form.submit(class="btn btn-primary") }}
+                    <a href="{{ url_for('admin.courses') }}" class="btn btn-outline-secondary ms-2">取消</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

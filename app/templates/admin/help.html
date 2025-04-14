@@ -1,0 +1,228 @@
+{% extends 'admin/admin_layout.html' %}
+
+{% block title %}帮助中心 - {{ settings.get('site_name', '智证校园管理系统') }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-question-circle me-2 text-primary"></i> 帮助中心
+        </h2>
+        <a href="{{ url_for('admin.new_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> 返回仪表盘
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">帮助目录</h5>
+                </div>
+                <div class="list-group list-group-flush" id="help-tabs" role="tablist">
+                    <a class="list-group-item list-group-item-action active" data-bs-toggle="tab" href="#quick-start" role="tab">
+                        <i class="fas fa-rocket me-2"></i> 快速入门
+                    </a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="tab" href="#user-management" role="tab">
+                        <i class="fas fa-users-cog me-2"></i> 用户管理
+                    </a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="tab" href="#student-management" role="tab">
+                        <i class="fas fa-user-graduate me-2"></i> 学生管理
+                    </a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="tab" href="#teacher-management" role="tab">
+                        <i class="fas fa-chalkboard-teacher me-2"></i> 教师管理
+                    </a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="tab" href="#course-management" role="tab">
+                        <i class="fas fa-book me-2"></i> 课程管理
+                    </a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="tab" href="#literacy-platform" role="tab">
+                        <i class="fas fa-certificate me-2"></i> 素养平台
+                    </a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="tab" href="#security-control" role="tab">
+                        <i class="fas fa-shield-alt me-2"></i> 安全管控
+                    </a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="tab" href="#system-settings" role="tab">
+                        <i class="fas fa-cog me-2"></i> 系统设置
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="tab-content">
+                        <!-- 快速入门 -->
+                        <div class="tab-pane fade show active" id="quick-start" role="tabpanel">
+                            <h4 class="mb-4">快速入门指南</h4>
+                            
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i> 欢迎使用智证校园管理系统。本指南将帮助您快速了解系统的基本功能和操作流程。
+                            </div>
+                            
+                            <h5 class="mt-4"><i class="fas fa-sign-in-alt me-2"></i> 1. 登录系统</h5>
+                            <p>使用管理员账号和密码登录系统，首次登录后请及时修改默认密码。</p>
+                            
+                            <h5 class="mt-4"><i class="fas fa-th me-2"></i> 2. 熟悉导航</h5>
+                            <p>系统主要分为顶部导航栏、侧边菜单和主内容区域：</p>
+                            <ul>
+                                <li>顶部导航栏：包含系统名称、快捷链接和用户选项</li>
+                                <li>侧边菜单：提供对各功能模块的快速访问</li>
+                                <li>应用中心：汇集了所有系统功能的入口</li>
+                            </ul>
+                            
+                            <h5 class="mt-4"><i class="fas fa-cogs me-2"></i> 3. 基本功能</h5>
+                            <p>系统的核心功能模块包括：</p>
+                            <ul>
+                                <li>教学管理：课程、教学计划、成绩管理等</li>
+                                <li>日常管理：学生、教师、场地管理等</li>
+                                <li>安全管控：门禁、监控、权限管理等</li>
+                                <li>素养平台：素养证书、素养报告、素养资源等</li>
+                            </ul>
+                            
+                            <h5 class="mt-4"><i class="fas fa-question-circle me-2"></i> 4. 获取帮助</h5>
+                            <p>如果您在使用过程中遇到问题，可以：</p>
+                            <ul>
+                                <li>查阅本帮助文档</li>
+                                <li>联系系统管理员</li>
+                                <li>发送邮件至技术支持邮箱：support@example.com</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 用户管理 -->
+                        <div class="tab-pane fade" id="user-management" role="tabpanel">
+                            <h4 class="mb-4">用户管理</h4>
+                            
+                            <p>用户管理模块允许管理员创建和管理系统用户账号，分配权限角色。</p>
+                            
+                            <h5 class="mt-4">主要功能</h5>
+                            <ul>
+                                <li>创建新用户：添加教师、学生或管理员账号</li>
+                                <li>编辑用户信息：修改用户基本资料</li>
+                                <li>重置密码：为用户重置登录密码</li>
+                                <li>分配角色：设置用户系统权限</li>
+                                <li>锁定/解锁账号：控制用户登录权限</li>
+                            </ul>
+                            
+                            <h5 class="mt-4">操作指南</h5>
+                            <ol>
+                                <li>点击侧边栏中的"用户管理"</li>
+                                <li>在用户列表中可以查看所有系统用户</li>
+                                <li>点击"添加用户"按钮创建新账号</li>
+                                <li>填写必要信息并设置初始密码</li>
+                                <li>选择适当的角色（管理员、教师、学生等）</li>
+                                <li>点击保存完成创建</li>
+                            </ol>
+                        </div>
+                        
+                        <!-- 学生管理 -->
+                        <div class="tab-pane fade" id="student-management" role="tabpanel">
+                            <h4 class="mb-4">学生管理</h4>
+                            
+                            <p>学生管理模块用于维护学生信息，包括个人资料、班级信息、选课记录等。</p>
+                            
+                            <h5 class="mt-4">主要功能</h5>
+                            <ul>
+                                <li>学生档案：管理学生基本信息</li>
+                                <li>班级分配：将学生分配到班级</li>
+                                <li>选课管理：管理学生选课记录</li>
+                                <li>成绩记录：查看学生课程成绩</li>
+                                <li>学籍变更：处理转班、休学、复学等</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 系统设置 -->
+                        <div class="tab-pane fade" id="system-settings" role="tabpanel">
+                            <h4 class="mb-4">系统设置</h4>
+                            
+                            <p>系统设置模块允许管理员配置系统基本参数，包括学校信息、学期设置、系统外观等。</p>
+                            
+                            <h5 class="mt-4">主要设置项</h5>
+                            <ul>
+                                <li>学校信息：学校名称、地址、联系方式等</li>
+                                <li>学期设置：学年、学期划分及起止日期</li>
+                                <li>界面设置：系统主题颜色、Logo等</li>
+                                <li>通知设置：系统通知和提醒配置</li>
+                                <li>安全设置：密码策略、登录限制等</li>
+                            </ul>
+                            
+                            <h5 class="mt-4">操作指南</h5>
+                            <ol>
+                                <li>点击顶部菜单或侧边栏中的"系统设置"</li>
+                                <li>在设置页面选择相应标签页</li>
+                                <li>修改所需参数</li>
+                                <li>点击"保存设置"按钮应用更改</li>
+                            </ol>
+                            
+                            <div class="alert alert-warning mt-4">
+                                <i class="fas fa-exclamation-triangle me-2"></i> 修改系统关键设置可能会影响系统运行，请谨慎操作。
+                            </div>
+                        </div>
+                        
+                        <!-- 其它标签页内容略 -->
+                        <div class="tab-pane fade" id="teacher-management" role="tabpanel">
+                            <h4 class="mb-4">教师管理</h4>
+                            <p>教师管理模块的详细说明和使用指南...</p>
+                        </div>
+                        
+                        <div class="tab-pane fade" id="course-management" role="tabpanel">
+                            <h4 class="mb-4">课程管理</h4>
+                            <p>课程管理模块的详细说明和使用指南...</p>
+                        </div>
+                        
+                        <div class="tab-pane fade" id="literacy-platform" role="tabpanel">
+                            <h4 class="mb-4">素养平台</h4>
+                            <p>素养平台模块的详细说明和使用指南...</p>
+                        </div>
+                        
+                        <div class="tab-pane fade" id="security-control" role="tabpanel">
+                            <h4 class="mb-4">安全管控</h4>
+                            <p>安全管控模块的详细说明和使用指南...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+                    <h5 class="mb-3"><i class="fas fa-headset me-2"></i> 技术支持</h5>
+                    <p>如果您在使用过程中遇到任何问题，可以通过以下方式获取技术支持：</p>
+                    <ul>
+                        <li>技术支持电话：400-123-4567</li>
+                        <li>支持邮箱：support@example.com</li>
+                        <li>工作时间：周一至周五 9:00-17:30</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    // 实现标签页切换逻辑
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabs = document.querySelectorAll('#help-tabs a');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // 移除所有活动状态
+                tabs.forEach(t => t.classList.remove('active'));
+                
+                // 设置当前选项卡为活动状态
+                this.classList.add('active');
+                
+                // 显示对应的内容
+                const target = document.querySelector(this.getAttribute('href'));
+                document.querySelectorAll('.tab-pane').forEach(pane => {
+                    pane.classList.remove('show', 'active');
+                });
+                target.classList.add('show', 'active');
+            });
+        });
+    });
+</script>
+{% endblock %} 

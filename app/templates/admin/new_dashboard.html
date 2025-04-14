@@ -1,0 +1,250 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block title %}管理员工作台 - 智证校园管理系统{% endblock %}
+
+{% block content %}
+<!-- 欢迎部分 -->
+<div class="welcome-section">
+    <h1 class="welcome-heading">下午好，系统管理员</h1>
+    <p class="welcome-date">今天是 <span class="current-date">2023年3月29日 星期六</span>，欢迎回到校园综合管理平台</p>
+</div>
+
+<!-- 常用功能 -->
+<div class="module-section">
+    <h3>常用功能</h3>
+    <div class="module-grid">
+        <a href="{{ url_for('admin.students_new') }}" class="module-item">
+            <div class="module-icon bg-primary-light">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <h5 class="module-title">学生管理</h5>
+        </a>
+        <a href="{{ url_for('admin.courses_new') }}" class="module-item">
+            <div class="module-icon bg-success-light">
+                <i class="fas fa-book"></i>
+            </div>
+            <h5 class="module-title">课程管理</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-info-light">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <h5 class="module-title">教师管理</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-warning-light">
+                <i class="fas fa-building"></i>
+            </div>
+            <h5 class="module-title">班级管理</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-danger-light">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <h5 class="module-title">成绩管理</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-purple-light">
+                <i class="fas fa-bullhorn"></i>
+            </div>
+            <h5 class="module-title">通知管理</h5>
+        </a>
+    </div>
+</div>
+
+<!-- 待办事项 -->
+<div class="task-card">
+    <h3>
+        待办事项
+        <a href="#" class="text-primary" style="font-size: 14px;">查看更多 <i class="fas fa-angle-right"></i></a>
+    </h3>
+    
+    <div class="d-flex justify-content-center align-items-center py-5">
+        <div class="text-center text-muted">
+            <i class="fas fa-clipboard-check fa-3x mb-3"></i>
+            <p>暂无待办事项</p>
+        </div>
+    </div>
+</div>
+
+<!-- 所有应用 -->
+<div class="module-section">
+    <h3>基础功能</h3>
+    <div class="module-grid">
+        <a href="{{ url_for('admin.students_new') }}" class="module-item">
+            <div class="module-icon bg-primary-light">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <h5 class="module-title">学生管理</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-success-light">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <h5 class="module-title">教师管理</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-info-light">
+                <i class="fas fa-users"></i>
+            </div>
+            <h5 class="module-title">班级管理</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-warning-light">
+                <i class="fas fa-building"></i>
+            </div>
+            <h5 class="module-title">部门管理</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-danger-light">
+                <i class="fas fa-user-cog"></i>
+            </div>
+            <h5 class="module-title">用户管理</h5>
+        </a>
+        <a href="{{ url_for('admin.courses_new') }}" class="module-item">
+            <div class="module-icon bg-purple-light">
+                <i class="fas fa-book"></i>
+            </div>
+            <h5 class="module-title">课程管理</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-cyan-light">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <h5 class="module-title">排课管理</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-orange-light">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <h5 class="module-title">计划进度</h5>
+        </a>
+    </div>
+</div>
+
+<div class="module-section">
+    <h3>综合功能</h3>
+    <div class="module-grid">
+        <a href="#" class="module-item">
+            <div class="module-icon bg-primary-light">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h5 class="module-title">数据统计</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-success-light">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <h5 class="module-title">教学档案</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-info-light">
+                <i class="fas fa-search"></i>
+            </div>
+            <h5 class="module-title">人员检索</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-warning-light">
+                <i class="fas fa-file-export"></i>
+            </div>
+            <h5 class="module-title">实习记录</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-danger-light">
+                <i class="fas fa-tasks"></i>
+            </div>
+            <h5 class="module-title">考勤管理</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-purple-light">
+                <i class="fas fa-exchange-alt"></i>
+            </div>
+            <h5 class="module-title">资源分配</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-pink-light">
+                <i class="fas fa-bullhorn"></i>
+            </div>
+            <h5 class="module-title">通知管理</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-cyan-light">
+                <i class="fas fa-cog"></i>
+            </div>
+            <h5 class="module-title">系统设置</h5>
+        </a>
+    </div>
+</div>
+
+<div class="module-section">
+    <h3>扩展功能</h3>
+    <div class="module-grid">
+        <a href="#" class="module-item">
+            <div class="module-icon bg-primary-light">
+                <i class="fas fa-door-open"></i>
+            </div>
+            <h5 class="module-title">门禁管理</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-success-light">
+                <i class="fas fa-desktop"></i>
+            </div>
+            <h5 class="module-title">设备管理</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-info-light">
+                <i class="fas fa-id-card"></i>
+            </div>
+            <h5 class="module-title">人员出入</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-warning-light">
+                <i class="fas fa-calculator"></i>
+            </div>
+            <h5 class="module-title">计划模板</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-danger-light">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <h5 class="module-title">权限分配</h5>
+        </a>
+        <a href="#" class="module-item">
+            <div class="module-icon bg-purple-light">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <h5 class="module-title">高级应用</h5>
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 获取当前时间，根据时间段显示不同的问候语
+        function getGreeting() {
+            const hour = new Date().getHours();
+            const welcomeHeading = document.querySelector('.welcome-heading');
+            
+            if (hour < 6) {
+                welcomeHeading.textContent = '凌晨好，系统管理员';
+            } else if (hour < 9) {
+                welcomeHeading.textContent = '早上好，系统管理员';
+            } else if (hour < 12) {
+                welcomeHeading.textContent = '上午好，系统管理员';
+            } else if (hour < 14) {
+                welcomeHeading.textContent = '中午好，系统管理员';
+            } else if (hour < 18) {
+                welcomeHeading.textContent = '下午好，系统管理员';
+            } else if (hour < 22) {
+                welcomeHeading.textContent = '晚上好，系统管理员';
+            } else {
+                welcomeHeading.textContent = '夜深了，系统管理员';
+            }
+        }
+        
+        getGreeting();
+    });
+</script>
+{% endblock %} 

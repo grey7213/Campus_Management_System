@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}选课中心 - 校园管理系统{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">选课中心</h1>
+        <a href="{{ url_for('student.my_courses') }}" class="btn btn-info">
+            <i class="fas fa-list"></i> 查看我的课程
+        </a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <form action="{{ url_for('student.courses') }}" method="GET" class="form-inline">
+                <div class="input-group mr-2 mb-2">
+                    <input type="text" name="q" class="form-control" placeholder="搜索课程..." value="{{ request.args.get('q', '') }}">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <select name="semester" class="form-control mr-2 mb-2">
+                    <option value="">所有学期</option>
+                    <option value="2023-2024-1" {% if request.args.get('semester') == '2023-2024-1' %}selected{% endif %}>2023-2024学年第一学期</option>
+                    <option value="2023-2024-2" {% if request.args.get('semester') == '2023-2024-2' %}selected{% endif %}>2023-2024学年第二学期</option>
+                </select>
+                <button type="submit" class="btn btn-primary mb-2">筛选</button>
+            </form>
+        </div>
+    </div>
+
+    {% if courses %}
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">可选课程列表</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th>课程代码</th>
+                        <th>课程名称</th>
+                        <th>学分</th>
+                        <th>课时</th>
+                        <th>授课教师</th>
+                        <th>学期</th>
+                        <th>已选/容量</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for course in courses %}
+                    <tr>
+                        <td>{{ course.code }}</td>
+                        <td>{{ course.name }}</td>
+                        <td>{{ course.credits }}</td>
+                        <td>{{ course.hours }}</td>
+                        <td>{% if course.teacher %}{{ course.teacher.name }}{% else %}未指定{% endif %}</td>
+                        <td>{{ course.semester }}</td>
+                        <td>
+                            {% set enrolled_count = course.enrollments|selectattr('status', 'equalto', 'enrolled')|list|length %}
+                            {{ enrolled_count }}/{{ course.max_students }}
+                        </td>
+                        <td>
+                            {% if course.id in enrolled_course_ids %}
+                                <button class="btn btn-sm btn-success" disabled>
+                                    <i class="fas fa-check"></i> 已选
+                                </button>
+                            {% elif enrolled_count >= course.max_students %}
+                                <button class="btn btn-sm btn-secondary" disabled>
+                                    <i class="fas fa-ban"></i> 已满
+                                </button>
+                            {% else %}
+                                <form method="POST" action="{{ url_for('student.enroll_course', id=course.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-plus"></i> 选课
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% for p in pagination.iter_pages() %}
+                {% if p %}
+                    {% if p == pagination.page %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ p }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('student.courses', page=p, q=request.args.get('q', ''), semester=request.args.get('semester', '')) }}">{{ p }}</a>
+                    </li>
+                    {% endif %}
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle mr-2"></i> 没有找到符合条件的课程。
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

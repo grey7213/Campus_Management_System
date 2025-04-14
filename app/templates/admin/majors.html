@@ -1,0 +1,272 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block title %}专业管理 - {{ settings.get('site_name', '校园综合管理平台') }}{% endblock %}
+
+{% block content %}
+<!-- 欢迎部分 -->
+<div class="welcome-section">
+    <h1 class="welcome-heading">专业管理</h1>
+    <p class="welcome-date">管理学校各院系下的专业信息</p>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">专业列表</h5>
+                    <div>
+                        <a href="{{ url_for('admin.create_major') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> 添加专业
+                        </a>
+                        <div class="btn-group ms-2">
+                            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                导出
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-file-excel me-2"></i>导出为Excel</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2"></i>导出为PDF</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <form action="{{ url_for('admin.majors') }}" method="GET" class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="q" placeholder="搜索专业名称或代码" value="{{ request.args.get('q', '') }}">
+                            <button class="btn btn-outline-secondary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" name="department_id" onchange="this.form.submit()">
+                            <option value="">所有院系</option>
+                            {% for department in departments %}
+                            <option value="{{ department.id }}" {% if request.args.get('department_id')|int == department.id %}selected{% endif %}>{{ department.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" name="level" onchange="this.form.submit()">
+                            <option value="">所有学历层次</option>
+                            <option value="本科" {% if request.args.get('level') == '本科' %}selected{% endif %}>本科</option>
+                            <option value="专科" {% if request.args.get('level') == '专科' %}selected{% endif %}>专科</option>
+                            <option value="硕士" {% if request.args.get('level') == '硕士' %}selected{% endif %}>硕士</option>
+                            <option value="博士" {% if request.args.get('level') == '博士' %}selected{% endif %}>博士</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-secondary w-100" type="button" onclick="window.location.href='{{ url_for('admin.majors') }}'">
+                            <i class="fas fa-sync-alt me-1"></i> 重置
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>专业编号</th>
+                                <th>专业名称</th>
+                                <th>专业代码</th>
+                                <th>所属院系</th>
+                                <th>学历层次</th>
+                                <th>学制</th>
+                                <th>班级数量</th>
+                                <th>学生数量</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for major in majors %}
+                            <tr>
+                                <td>{{ major.id }}</td>
+                                <td>{{ major.name }}</td>
+                                <td>{{ major.code }}</td>
+                                <td>{{ major.department.name if major.department else '未分配' }}</td>
+                                <td>{{ major.level }}</td>
+                                <td>{{ major.years }}年制</td>
+                                <td>{{ major.get_class_count() }}</td>
+                                <td>{{ student_counts.get(major.id, 0) }}</td>
+                                <td>{{ major.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('admin.view_major', id=major.id) }}" class="btn btn-outline-primary" title="查看详情">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('admin.edit_major', id=major.id) }}" class="btn btn-outline-secondary" title="编辑">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-outline-danger" title="删除" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="{{ major.id }}" data-name="{{ major.name }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="10" class="text-center py-3">
+                                    <div class="py-5">
+                                        <i class="fas fa-graduation-cap fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">暂无专业数据</p>
+                                        <a href="{{ url_for('admin.create_major') }}" class="btn btn-primary mt-2">
+                                            <i class="fas fa-plus me-1"></i> 添加第一个专业
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页 -->
+                {% if pagination.pages > 1 %}
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>显示 {{ pagination.page }} / {{ pagination.pages }} 页，共 {{ pagination.total }} 条记录</div>
+                    <nav>
+                        <ul class="pagination mb-0">
+                            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin.majors', page=pagination.prev_num, q=request.args.get('q', ''), department_id=request.args.get('department_id', ''), level=request.args.get('level', '')) if pagination.has_prev else '#' }}">上一页</a>
+                            </li>
+                            
+                            {% for page in pagination.iter_pages() %}
+                                {% if page %}
+                                    <li class="page-item {% if page == pagination.page %}active{% endif %}">
+                                        <a class="page-link" href="{{ url_for('admin.majors', page=page, q=request.args.get('q', ''), department_id=request.args.get('department_id', ''), level=request.args.get('level', '')) }}">{{ page }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin.majors', page=pagination.next_num, q=request.args.get('q', ''), department_id=request.args.get('department_id', ''), level=request.args.get('level', '')) if pagination.has_next else '#' }}">下一页</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 专业分析数据 -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">专业统计</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-around text-center mb-4">
+                    <div>
+                        <h2 class="mb-0">{{ majors|length }}</h2>
+                        <div class="text-muted">专业总数</div>
+                    </div>
+                    <div>
+                        <h2 class="mb-0">{{ departments|length }}</h2>
+                        <div class="text-muted">涵盖院系</div>
+                    </div>
+                    <div>
+                        <h2 class="mb-0">{{ total_students }}</h2>
+                        <div class="text-muted">学生总数</div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h6>学历层次分布</h6>
+                    <div class="progress" style="height: 24px">
+                        {% if total_majors > 0 %}
+                        <div class="progress-bar bg-primary" style="width: {{ (undergrad_count / total_majors * 100)|int }}%" title="本科">{{ undergrad_count }}</div>
+                        <div class="progress-bar bg-success" style="width: {{ (associate_count / total_majors * 100)|int }}%" title="专科">{{ associate_count }}</div>
+                        <div class="progress-bar bg-info" style="width: {{ (master_count / total_majors * 100)|int }}%" title="硕士">{{ master_count }}</div>
+                        <div class="progress-bar bg-warning" style="width: {{ (phd_count / total_majors * 100)|int }}%" title="博士">{{ phd_count }}</div>
+                        {% else %}
+                        <div class="progress-bar" style="width: 0%">0</div>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex justify-content-between mt-1">
+                        <small><i class="fas fa-circle text-primary me-1"></i>本科</small>
+                        <small><i class="fas fa-circle text-success me-1"></i>专科</small>
+                        <small><i class="fas fa-circle text-info me-1"></i>硕士</small>
+                        <small><i class="fas fa-circle text-warning me-1"></i>博士</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">学生人数最多的专业</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for major in top_majors %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-secondary me-2">{{ loop.index }}</span>
+                            <span>{{ major.name }} ({{ major.department.name if major.department else '未知院系' }})</span>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">{{ student_counts.get(major.id, 0) }} 人</span>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-center text-muted">暂无数据</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">确认删除专业</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>确定要删除专业 <strong id="majorName"></strong> 吗？</p>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span>删除专业将会同时删除该专业下的所有班级、学生数据以及相关的课程信息，该操作不可恢复。</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <form id="deleteForm" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">确认删除</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 删除专业的模态框处理
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const majorId = button.getAttribute('data-id');
+                const majorName = button.getAttribute('data-name');
+                const deleteForm = document.getElementById('deleteForm');
+                const majorNameEl = document.getElementById('majorName');
+                
+                deleteForm.action = `{{ url_for('admin.majors') }}/${majorId}/delete`;
+                majorNameEl.textContent = majorName;
+            });
+        }
+    });
+</script>
+{% endblock %} 

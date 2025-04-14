@@ -1,0 +1,10 @@
+sqlite3 app.db <<EOF
+ALTER TABLE literacy_certificates ADD COLUMN certificate_no VARCHAR(64);
+ALTER TABLE literacy_certificates ADD COLUMN student_id INTEGER REFERENCES students(id);
+ALTER TABLE literacy_certificates ADD COLUMN image_url VARCHAR(256);
+ALTER TABLE literacy_certificates ADD COLUMN blockchain_enabled BOOLEAN DEFAULT 0;
+ALTER TABLE literacy_certificates ADD COLUMN blockchain_certificate_id VARCHAR(66);
+ALTER TABLE literacy_certificates ADD COLUMN blockchain_transaction_hash VARCHAR(66);
+ALTER TABLE literacy_certificates ADD COLUMN blockchain_data_hash VARCHAR(66);
+ALTER TABLE literacy_certificates ADD COLUMN blockchain_verification_url VARCHAR(256);
+EOF

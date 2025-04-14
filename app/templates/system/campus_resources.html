@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}校内资源管理 - 校园管理系统{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-boxes mr-2"></i>校内资源管理</h2>
+        <div>
+            <span class="text-muted">今天是：</span>
+            <span id="current-date" class="font-weight-bold"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- 图书管理 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-primary-light mx-auto">
+                        <i class="fas fa-book text-white"></i>
+                    </div>
+                    <h5 class="module-title">图书管理</h5>
+                    <p class="card-text">管理图书馆藏书信息</p>
+                    <a href="{{ url_for('system.books') }}" class="btn btn-sm btn-outline-primary">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 教材管理 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-success-light mx-auto">
+                        <i class="fas fa-book-open text-white"></i>
+                    </div>
+                    <h5 class="module-title">教材管理</h5>
+                    <p class="card-text">管理教材采购和发放</p>
+                    <a href="{{ url_for('system.textbooks') }}" class="btn btn-sm btn-outline-success">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 实验室管理 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-info-light mx-auto">
+                        <i class="fas fa-flask text-white"></i>
+                    </div>
+                    <h5 class="module-title">实验室管理</h5>
+                    <p class="card-text">管理实验室设备和使用</p>
+                    <a href="{{ url_for('system.laboratories') }}" class="btn btn-sm btn-outline-info">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 多媒体教室 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-warning-light mx-auto">
+                        <i class="fas fa-tv text-white"></i>
+                    </div>
+                    <h5 class="module-title">多媒体教室</h5>
+                    <p class="card-text">管理多媒体教室设备</p>
+                    <a href="{{ url_for('system.multimedia_classrooms') }}" class="btn btn-sm btn-outline-warning">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 体育设施 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-danger-light mx-auto">
+                        <i class="fas fa-running text-white"></i>
+                    </div>
+                    <h5 class="module-title">体育设施</h5>
+                    <p class="card-text">管理体育场馆和器材</p>
+                    <a href="{{ url_for('system.sports_facilities') }}" class="btn btn-sm btn-outline-danger">进入</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 显示当前日期
+    document.getElementById('current-date').textContent = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+</script>
+{% endblock %}

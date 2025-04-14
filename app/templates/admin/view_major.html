@@ -1,0 +1,183 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block title %}专业详情 - 校园综合管理平台{% endblock %}
+
+{% block content %}
+<!-- 欢迎部分 -->
+<div class="welcome-section">
+    <h1 class="welcome-heading">专业详情</h1>
+    <p class="welcome-date">查看专业详细信息</p>
+</div>
+
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="d-flex justify-content-end">
+            <a href="{{ url_for('admin.edit_major', id=major.id) }}" class="btn btn-primary me-2">
+                <i class="fas fa-edit me-1"></i> 编辑专业
+            </a>
+            <a href="{{ url_for('admin.majors') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> 返回专业列表
+            </a>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">基本信息</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted mb-1">专业代码</h6>
+                        <p class="mb-0 fs-5">{{ major.code }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted mb-1">专业名称</h6>
+                        <p class="mb-0 fs-5">{{ major.name }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted mb-1">所属院系</h6>
+                        <p class="mb-0">
+                            {% if major.department %}
+                            <a href="{{ url_for('admin.view_department', id=major.department.id) }}">{{ major.department.name }}</a>
+                            {% else %}
+                            <span class="text-muted">未分配</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted mb-1">创建时间</h6>
+                        <p class="mb-0">{{ major.created_at.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted mb-1">状态</h6>
+                        <p class="mb-0">
+                            {% if major.status == 'active' %}
+                            <span class="badge bg-success">活跃</span>
+                            {% else %}
+                            <span class="badge bg-secondary">停用</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-12 mt-2">
+                        <h6 class="text-muted mb-1">专业描述</h6>
+                        <p class="mb-0">
+                            {{ major.description or '暂无描述信息' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">课程设置</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>课程代码</th>
+                                <th>课程名称</th>
+                                <th>学分</th>
+                                <th>课时</th>
+                                <th>课程类型</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for course in major_courses %}
+                            <tr>
+                                <td>{{ course.code }}</td>
+                                <td>
+                                    <a href="{{ url_for('admin.view_course', id=course.id) }}">{{ course.name }}</a>
+                                </td>
+                                <td>{{ course.credits }}</td>
+                                <td>{{ course.hours }}</td>
+                                <td>{{ course.get_course_type_display() }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-3">该专业暂无关联课程</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">统计数据</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0">
+                        <div class="stat-icon bg-primary">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">班级数量</h6>
+                        <h3 class="mb-0">{{ class_count }}</h3>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0">
+                        <div class="stat-icon bg-success">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">学生人数</h6>
+                        <h3 class="mb-0">{{ student_count }}</h3>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="stat-icon bg-info">
+                            <i class="fas fa-book"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">课程数量</h6>
+                        <h3 class="mb-0">{{ course_count }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">班级列表</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for class in classes %}
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ class.name }}</h6>
+                            <span class="badge bg-primary rounded-pill">{{ class.students.count() }}人</span>
+                        </div>
+                        <small class="text-muted">{{ class.grade }}级</small>
+                    </a>
+                    {% else %}
+                    <div class="list-group-item text-center py-3">
+                        <p class="mb-0 text-muted">该专业暂无班级</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% if classes %}
+            <div class="card-footer text-center">
+                <a href="#" class="btn btn-sm btn-outline-primary">查看全部班级</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

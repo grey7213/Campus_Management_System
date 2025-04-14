@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+
+{% block title %}个人资料 - 校园综合管理平台{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        {% if current_user.avatar_url %}
+                            <img src="{{ url_for('static', filename=current_user.avatar_url.replace('static/', '')) }}" class="rounded-circle img-fluid" style="width: 150px; height: 150px; object-fit: cover;" alt="用户头像">
+                        {% else %}
+                            <div class="avatar-circle mx-auto" style="width: 150px; height: 150px;">
+                                <span class="initials" style="font-size: 64px;">{{ current_user.name[0] if current_user.name else current_user.username[0] }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <h5 class="mb-1">{{ current_user.name or current_user.username }}</h5>
+                    <p class="text-muted">
+                        {% if current_user.is_administrator() %}
+                        <span class="badge bg-danger">管理员</span>
+                        {% elif current_user.is_teacher() %}
+                        <span class="badge bg-success">教师</span>
+                        {% elif current_user.is_student() %}
+                        <span class="badge bg-primary">学生</span>
+                        {% endif %}
+                    </p>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadAvatarModal">
+                        <i class="fas fa-camera me-1"></i> 更换头像
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">联系信息</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><i class="fas fa-envelope me-2"></i> 邮箱</span>
+                            <span>{{ current_user.email }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><i class="fas fa-phone me-2"></i> 电话</span>
+                            <span>{{ current_user.phone or '未设置' }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><i class="fas fa-clock me-2"></i> 账号创建</span>
+                            <span>{{ current_user.created_at.strftime('%Y-%m-%d') }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">个人资料</h5>
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                        <i class="fas fa-edit me-1"></i> 编辑资料
+                    </button>
+                </div>
+                <div class="card-body">
+                    <form>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">用户名</label>
+                                    <input type="text" class="form-control" value="{{ current_user.username }}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">姓名</label>
+                                    <input type="text" class="form-control" value="{{ current_user.name or '' }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">电子邮箱</label>
+                                    <input type="email" class="form-control" value="{{ current_user.email }}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">联系电话</label>
+                                    <input type="text" class="form-control" value="{{ current_user.phone or '' }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">角色</label>
+                                    <input type="text" class="form-control" value="{{ current_user.role.name if current_user.role else '未分配' }}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">状态</label>
+                                    <input type="text" class="form-control" value="{{ '活跃' if current_user.is_active else '未激活' }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">修改密码</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('auth.change_password') }}">
+                        {{ password_form.csrf_token }}
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="form-label">{{ password_form.old_password.label.text }}</label>
+                                    {{ password_form.old_password(class="form-control") }}
+                                    {% if password_form.old_password.errors %}
+                                        <div class="text-danger">
+                                            {% for error in password_form.old_password.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">{{ password_form.new_password.label.text }}</label>
+                                    {{ password_form.new_password(class="form-control") }}
+                                    {% if password_form.new_password.errors %}
+                                        <div class="text-danger">
+                                            {% for error in password_form.new_password.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">{{ password_form.confirm_password.label.text }}</label>
+                                    {{ password_form.confirm_password(class="form-control") }}
+                                    {% if password_form.confirm_password.errors %}
+                                        <div class="text-danger">
+                                            {% for error in password_form.confirm_password.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            {{ password_form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 上传头像模态框 -->
+<div class="modal fade" id="uploadAvatarModal" tabindex="-1" aria-labelledby="uploadAvatarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadAvatarModalLabel">更换头像</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('auth.upload_avatar') }}" method="POST" enctype="multipart/form-data">
+                    {{ avatar_form.csrf_token }}
+                    <div class="mb-3">
+                        <label for="avatar" class="form-label">{{ avatar_form.avatar.label.text }}</label>
+                        {{ avatar_form.avatar(class="form-control", id="avatar") }}
+                        <div class="form-text">支持JPG、PNG或GIF格式，文件大小不超过2MB</div>
+                        {% if avatar_form.avatar.errors %}
+                            <div class="text-danger">
+                                {% for error in avatar_form.avatar.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="text-center">
+                        <img id="avatar-preview" class="img-fluid rounded-circle mt-3 mb-3" style="max-width: 200px; max-height: 200px; display: none;">
+                    </div>
+                    <div class="d-grid">
+                        {{ avatar_form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑资料模态框 -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProfileModalLabel">编辑个人资料</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('auth.update_profile') }}" method="POST">
+                    {{ profile_form.csrf_token }}
+                    <div class="mb-3">
+                        <label for="name" class="form-label">{{ profile_form.name.label.text }}</label>
+                        {{ profile_form.name(class="form-control", id="name") }}
+                        {% if profile_form.name.errors %}
+                            <div class="text-danger">
+                                {% for error in profile_form.name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">{{ profile_form.email.label.text }}</label>
+                        {{ profile_form.email(class="form-control", id="email") }}
+                        {% if profile_form.email.errors %}
+                            <div class="text-danger">
+                                {% for error in profile_form.email.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">{{ profile_form.phone.label.text }}</label>
+                        {{ profile_form.phone(class="form-control", id="phone") }}
+                        {% if profile_form.phone.errors %}
+                            <div class="text-danger">
+                                {% for error in profile_form.phone.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="d-grid">
+                        {{ profile_form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 图片预览功能
+        const avatarInput = document.getElementById('avatar');
+        const avatarPreview = document.getElementById('avatar-preview');
+        
+        if (avatarInput && avatarPreview) {
+            avatarInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        avatarPreview.style.display = 'block';
+                        avatarPreview.src = e.target.result;
+                    }
+                    
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %} 

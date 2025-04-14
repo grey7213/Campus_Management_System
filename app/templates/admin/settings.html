@@ -1,0 +1,486 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block title %}系统设置 - 校园管理系统{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">系统设置</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.new_dashboard') }}">控制面板</a></li>
+        <li class="breadcrumb-item active">系统设置</li>
+    </ol>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" id="settingsTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab" aria-controls="basic" aria-selected="true">基本设置</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="appearance-tab" data-bs-toggle="tab" data-bs-target="#appearance" type="button" role="tab" aria-controls="appearance" aria-selected="false">外观设置</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="home-appearance-tab" data-bs-toggle="tab" data-bs-target="#home-appearance" type="button" role="tab" aria-controls="home-appearance" aria-selected="false">首页外观</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab" aria-controls="security" aria-selected="false">安全设置</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="backup-tab" data-bs-toggle="tab" data-bs-target="#backup" type="button" role="tab" aria-controls="backup" aria-selected="false">备份与恢复</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs" type="button" role="tab" aria-controls="logs" aria-selected="false">系统日志</button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content" id="settingsTabsContent">
+                <!-- 基本设置 -->
+                <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
+                    <h3 class="mb-4">基本设置</h3>
+                    <form action="{{ url_for('admin.save_settings') }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="setting_type" value="basic">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="site_name" class="form-label">站点名称</label>
+                                    <input type="text" class="form-control" id="site_name" name="site_name" value="{{ settings.get('site_name', '校园综合管理平台') }}">
+                                    <div class="form-text">显示在浏览器标题和导航栏中的站点名称</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="school_name" class="form-label">学校名称</label>
+                                    <input type="text" class="form-control" id="school_name" name="school_name" value="{{ settings.get('school_name', '示例大学') }}">
+                                    <div class="form-text">您的学校或机构名称</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="contact_email" class="form-label">联系邮箱</label>
+                                    <input type="email" class="form-control" id="contact_email" name="contact_email" value="{{ settings.get('contact_email', 'admin@example.com') }}">
+                                    <div class="form-text">用于系统通知和用户支持的邮箱地址</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="current_semester" class="form-label">当前学期</label>
+                                    <input type="text" class="form-control" id="current_semester" name="current_semester" value="{{ settings.get('current_semester', '2023-2024-2') }}">
+                                    <div class="form-text">当前学期信息，例如：2023-2024-2（表示2023-2024学年第二学期）</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="items_per_page" class="form-label">每页显示条目数</label>
+                                    <input type="number" class="form-control" id="items_per_page" name="items_per_page" value="{{ settings.get('items_per_page', 10) }}" min="5" max="100">
+                                    <div class="form-text">在列表页面中每页显示的记录数</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3 form-check form-switch mt-4">
+                                    <input class="form-check-input" type="checkbox" id="enable_registration" name="enable_registration" {% if settings.get('enable_registration', True) %}checked{% endif %}>
+                                    <label class="form-check-label" for="enable_registration">允许用户注册</label>
+                                    <div class="form-text">是否允许新用户注册账号</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">保存基本设置</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- 外观设置 -->
+                <div class="tab-pane fade" id="appearance" role="tabpanel" aria-labelledby="appearance-tab">
+                    <h3 class="mb-4">外观设置</h3>
+                    <form action="{{ url_for('admin.save_settings') }}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="setting_type" value="appearance">
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="theme_color" class="form-label">主题颜色</label>
+                                    <div class="input-group">
+                                        <input type="color" class="form-control form-control-color" id="theme_color" name="theme_color" value="{{ settings.get('theme_color', '#0d6efd') }}" title="选择主题颜色">
+                                        <input type="text" class="form-control" value="{{ settings.get('theme_color', '#0d6efd') }}" id="theme_color_hex">
+                                    </div>
+                                    <div class="form-text">选择系统的主题颜色</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="layout_style" class="form-label">布局样式</label>
+                                    <select class="form-select" id="layout_style" name="layout_style">
+                                        <option value="default" {% if settings.get('layout_style') == 'default' %}selected{% endif %}>默认布局</option>
+                                        <option value="compact" {% if settings.get('layout_style') == 'compact' %}selected{% endif %}>紧凑布局</option>
+                                        <option value="wide" {% if settings.get('layout_style') == 'wide' %}selected{% endif %}>宽屏布局</option>
+                                    </select>
+                                    <div class="form-text">选择系统的整体布局风格</div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="logo" class="form-label">系统Logo</label>
+                                    {% if settings.get('logo') %}
+                                    <div class="mb-2">
+                                        <img src="{{ settings.get('logo') }}" alt="当前Logo" class="img-thumbnail" style="max-height: 80px;">
+                                    </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control" id="logo" name="logo">
+                                    <div class="form-text">上传显示在导航栏的系统Logo（建议大小：200x50像素）</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="favicon" class="form-label">网站图标</label>
+                                    {% if settings.get('favicon') %}
+                                    <div class="mb-2">
+                                        <img src="{{ settings.get('favicon') }}" alt="当前图标" class="img-thumbnail" style="max-height: 32px;">
+                                    </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control" id="favicon" name="favicon">
+                                    <div class="form-text">上传显示在浏览器标签页的网站图标（建议大小：32x32像素）</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-4">
+                            <div class="card-header">主题预览</div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="theme-preview">
+                                            <div class="theme-preview-navbar" id="preview-navbar">
+                                                导航栏
+                                            </div>
+                                            <div class="theme-preview-content p-3">
+                                                <h5>内容区域</h5>
+                                                <p>这是一段示例文本，<a href="#" id="preview-link">这是一个链接</a>。</p>
+                                                <button class="btn btn-primary" id="preview-button">按钮</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5>预设主题颜色</h5>
+                                        <div class="d-flex flex-wrap gap-2 mb-3">
+                                            <button type="button" class="btn btn-sm theme-swatch" style="background-color: #0d6efd" data-color="#0d6efd"></button>
+                                            <button type="button" class="btn btn-sm theme-swatch" style="background-color: #6f42c1" data-color="#6f42c1"></button>
+                                            <button type="button" class="btn btn-sm theme-swatch" style="background-color: #d63384" data-color="#d63384"></button>
+                                            <button type="button" class="btn btn-sm theme-swatch" style="background-color: #dc3545" data-color="#dc3545"></button>
+                                            <button type="button" class="btn btn-sm theme-swatch" style="background-color: #fd7e14" data-color="#fd7e14"></button>
+                                            <button type="button" class="btn btn-sm theme-swatch" style="background-color: #198754" data-color="#198754"></button>
+                                            <button type="button" class="btn btn-sm theme-swatch" style="background-color: #20c997" data-color="#20c997"></button>
+                                            <button type="button" class="btn btn-sm theme-swatch" style="background-color: #0dcaf0" data-color="#0dcaf0"></button>
+                                            <button type="button" class="btn btn-sm theme-swatch" style="background-color: #adb5bd" data-color="#adb5bd"></button>
+                                            <button type="button" class="btn btn-sm theme-swatch" style="background-color: #343a40" data-color="#343a40"></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">保存外观设置</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- 首页外观设置 -->
+                <div class="tab-pane fade" id="home-appearance" role="tabpanel" aria-labelledby="home-appearance-tab">
+                    <h3 class="mb-4">首页外观设置</h3>
+                    <form action="{{ url_for('admin.save_settings') }}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="setting_type" value="home_appearance">
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="home_theme_color" class="form-label">首页主题颜色</label>
+                                    <div class="input-group">
+                                        <input type="color" class="form-control form-control-color" id="home_theme_color" name="home_theme_color" value="{{ settings.get('home_theme_color', '#0d6efd') }}" title="选择首页主题颜色">
+                                        <input type="text" class="form-control" value="{{ settings.get('home_theme_color', '#0d6efd') }}" id="home_theme_color_hex">
+                                    </div>
+                                    <div class="form-text">选择首页的主题颜色</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="home_layout_style" class="form-label">首页布局样式</label>
+                                    <select class="form-select" id="home_layout_style" name="home_layout_style">
+                                        <option value="default" {% if settings.get('home_layout_style') == 'default' %}selected{% endif %}>默认布局</option>
+                                        <option value="modern" {% if settings.get('home_layout_style') == 'modern' %}selected{% endif %}>现代布局</option>
+                                        <option value="classic" {% if settings.get('home_layout_style') == 'classic' %}selected{% endif %}>经典布局</option>
+                                    </select>
+                                    <div class="form-text">选择首页的整体布局风格</div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="home_logo" class="form-label">首页Logo</label>
+                                    {% if settings.get('home_logo') %}
+                                    <div class="mb-2">
+                                        <img src="{{ settings.get('home_logo') }}" alt="当前首页Logo" class="img-thumbnail" style="max-height: 80px;">
+                                    </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control" id="home_logo" name="home_logo">
+                                    <div class="form-text">上传显示在首页的Logo（建议大小：300x80像素）</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-4">
+                            <div class="card-header">首页主题预览</div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="theme-preview">
+                                            <div class="theme-preview-navbar" id="home-preview-navbar">
+                                                首页导航栏
+                                            </div>
+                                            <div class="theme-preview-content p-3">
+                                                <h5>首页内容区域</h5>
+                                                <p>这是一段示例文本，<a href="#" id="home-preview-link">这是一个链接</a>。</p>
+                                                <button class="btn btn-primary" id="home-preview-button">按钮</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5>预设首页主题颜色</h5>
+                                        <div class="d-flex flex-wrap gap-2 mb-3">
+                                            <button type="button" class="btn btn-sm theme-swatch" style="background-color: #0d6efd" data-color="#0d6efd"></button>
+                                            <button type="button" class="btn btn-sm theme-swatch" style="background-color: #6f42c1" data-color="#6f42c1"></button>
+                                            <button type="button" class="btn btn-sm theme-swatch" style="background-color: #d63384" data-color="#d63384"></button>
+                                            <button type="button" class="btn btn-sm theme-swatch" style="background-color: #dc3545" data-color="#dc3545"></button>
+                                            <button type="button" class="btn btn-sm theme-swatch" style="background-color: #fd7e14" data-color="#fd7e14"></button>
+                                            <button type="button" class="btn btn-sm theme-swatch" style="background-color: #198754" data-color="#198754"></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">保存首页外观设置</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- 安全设置 -->
+                <div class="tab-pane fade" id="security" role="tabpanel" aria-labelledby="security-tab">
+                    <h3 class="mb-4">安全设置</h3>
+                    <form action="{{ url_for('admin.save_settings') }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="setting_type" value="security">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="password_min_length" class="form-label">密码最小长度</label>
+                                    <input type="number" class="form-control" id="password_min_length" name="password_min_length" value="{{ settings.get('password_min_length', 8) }}" min="6" max="30">
+                                    <div class="form-text">设置用户密码的最小长度要求</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3 form-check form-switch mt-4">
+                                    <input class="form-check-input" type="checkbox" id="password_complexity" name="password_complexity" {% if settings.get('password_complexity', True) %}checked{% endif %}>
+                                    <label class="form-check-label" for="password_complexity">要求密码复杂度</label>
+                                    <div class="form-text">启用后，密码必须包含大小写字母、数字和特殊字符</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="session_timeout" class="form-label">会话超时时间（分钟）</label>
+                                    <input type="number" class="form-control" id="session_timeout" name="session_timeout" value="{{ settings.get('session_timeout', 30) }}" min="5" max="1440">
+                                    <div class="form-text">用户不活动后自动退出登录的时间（单位：分钟）</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">保存安全设置</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- 备份与恢复 -->
+                <div class="tab-pane fade" id="backup" role="tabpanel" aria-labelledby="backup-tab">
+                    <h3 class="mb-4">备份与恢复</h3>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">数据库备份</div>
+                                <div class="card-body">
+                                    <p>创建系统数据的完整备份，包括所有用户、课程、学生和设置信息。</p>
+                                    <form action="{{ url_for('admin.backup_database') }}" method="post">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-primary">创建备份</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">恢复数据</div>
+                                <div class="card-body">
+                                    <p>从之前创建的备份文件恢复系统数据。<strong>警告：</strong>这将覆盖当前所有数据！</p>
+                                    <form action="{{ url_for('admin.restore_database') }}" method="post" enctype="multipart/form-data">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <div class="mb-3">
+                                            <input type="file" class="form-control" id="backup_file" name="backup_file">
+                                        </div>
+                                        <button type="submit" class="btn btn-danger">恢复数据</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">自动备份设置</div>
+                        <div class="card-body">
+                            <p>自动备份功能将在后续版本推出。</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 系统日志 -->
+                <div class="tab-pane fade" id="logs" role="tabpanel" aria-labelledby="logs-tab">
+                    <h3 class="mb-4">系统日志</h3>
+                    <div class="d-flex justify-content-end mb-3">
+                        <form action="{{ url_for('admin.export_logs') }}" method="post" class="me-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-secondary">导出日志</button>
+                        </form>
+                        <form action="{{ url_for('admin.clear_logs') }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('确定要清空所有日志吗？此操作不可恢复。')">清空日志</button>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">系统日志功能将在后续版本推出</div>
+                        <div class="card-body">
+                            <p>系统日志记录功能将在后续版本中提供，包括用户登录记录、重要操作记录和系统错误记录等。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .theme-preview {
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+    .theme-preview-navbar {
+        background-color: var(--theme-color, {{ settings.get('theme_color', '#0d6efd') }});
+        color: white;
+        padding: 10px 15px;
+        font-weight: bold;
+    }
+    .theme-preview-content {
+        background-color: #fff;
+        min-height: 150px;
+    }
+    #preview-button {
+        background-color: var(--theme-color, {{ settings.get('theme_color', '#0d6efd') }});
+        border-color: var(--theme-color, {{ settings.get('theme_color', '#0d6efd') }});
+    }
+    #preview-link {
+        color: var(--theme-color, {{ settings.get('theme_color', '#0d6efd') }});
+    }
+    .theme-swatch {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 0 0 1px #ddd;
+    }
+</style>
+
+<script>
+$(document).ready(function() {
+    // 现有的主题颜色处理代码
+    function updateThemePreview(color) {
+        $('#preview-navbar').css('background-color', color);
+        $('#preview-button').css('background-color', color);
+        $('#preview-link').css('color', color);
+    }
+    
+    $('#theme_color').on('input', function() {
+        var color = $(this).val();
+        $('#theme_color_hex').val(color);
+        updateThemePreview(color);
+    });
+    
+    $('#theme_color_hex').on('input', function() {
+        var color = $(this).val();
+        $('#theme_color').val(color);
+        updateThemePreview(color);
+    });
+    
+    // 首页主题颜色处理代码
+    function updateHomeThemePreview(color) {
+        $('#home-preview-navbar').css('background-color', color);
+        $('#home-preview-button').css('background-color', color);
+        $('#home-preview-link').css('color', color);
+    }
+    
+    $('#home_theme_color').on('input', function() {
+        var color = $(this).val();
+        $('#home_theme_color_hex').val(color);
+        updateHomeThemePreview(color);
+    });
+    
+    $('#home_theme_color_hex').on('input', function() {
+        var color = $(this).val();
+        $('#home_theme_color').val(color);
+        updateHomeThemePreview(color);
+    });
+    
+    // 主题色板点击事件
+    $('.theme-swatch').click(function() {
+        var color = $(this).data('color');
+        var activeTab = $('.tab-pane.active').attr('id');
+        
+        if (activeTab === 'appearance') {
+            $('#theme_color').val(color);
+            $('#theme_color_hex').val(color);
+            updateThemePreview(color);
+        } else if (activeTab === 'home-appearance') {
+            $('#home_theme_color').val(color);
+            $('#home_theme_color_hex').val(color);
+            updateHomeThemePreview(color);
+        }
+    });
+    
+    // 初始化预览
+    updateThemePreview($('#theme_color').val());
+    updateHomeThemePreview($('#home_theme_color').val());
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,970 @@
+{% extends "base.html" %}
+
+{% block title %}系统管理员控制面板 - {{ settings.get('site_name', '校园综合管理平台') }}{% endblock %}
+
+{% block css %}
+<style>
+    /* 控制面板整体样式 */
+    .dashboard-container {
+        padding: 1.5rem;
+        background-color: #f8f9fa;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.02'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3Cpath d='M6 5V0H5v5H0v1h5v94h1V6h94V5H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        min-height: calc(100vh - 56px);
+    }
+    
+    /* 顶部信息区 */
+    .dashboard-header {
+        border-radius: 15px;
+        background: linear-gradient(135deg, var(--bs-primary) 0%, #3a8eff 100%);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(13, 110, 253, 0.2);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .dashboard-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 200%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: rotate(30deg);
+    }
+    
+    .welcome-text {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.8rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .date-display {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    
+    /* 统计卡片样式 */
+    .stat-card {
+        border-radius: 15px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        height: 100%;
+        border: none;
+        overflow: hidden;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .stat-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to right bottom, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+        z-index: -1;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+    }
+    
+    .stat-icon {
+        font-size: 3rem;
+        opacity: 0.8;
+        position: absolute;
+        right: 1.5rem;
+        bottom: 0.5rem;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .stat-count {
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-title {
+        font-size: 1.1rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    /* 功能模块卡片 */
+    .module-card {
+        border-radius: 15px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: none;
+        height: 100%;
+        background: white;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .module-card::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(to right, var(--bs-primary), var(--bs-info));
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+    
+    .module-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .module-card:hover::after {
+        opacity: 1;
+    }
+    
+    .card-icon {
+        width: 70px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        margin-bottom: 1.2rem;
+        font-size: 1.8rem;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    .module-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 0.6rem;
+    }
+    
+    /* 背景色定义 */
+    .bg-primary-soft { 
+        background: linear-gradient(135deg, #0d6efd 0%, #3a8eff 100%);
+    }
+    .bg-success-soft { 
+        background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+    }
+    .bg-info-soft { 
+        background: linear-gradient(135deg, #0dcaf0 0%, #6edff6 100%);
+    }
+    .bg-warning-soft { 
+        background: linear-gradient(135deg, #ffc107 0%, #ffda6a 100%);
+    }
+    .bg-danger-soft { 
+        background: linear-gradient(135deg, #dc3545 0%, #ff6b7d 100%);
+    }
+    .bg-secondary-soft { 
+        background: linear-gradient(135deg, #6c757d 0%, #adb5bd 100%);
+    }
+    .bg-purple-soft { 
+        background: linear-gradient(135deg, #6f42c1 0%, #a370f7 100%);
+    }
+    .bg-teal-soft { 
+        background: linear-gradient(135deg, #20c997 0%, #5ce0b6 100%);
+    }
+    .bg-orange-soft { 
+        background: linear-gradient(135deg, #fd7e14 0%, #ffb686 100%);
+    }
+    .bg-pink-soft { 
+        background: linear-gradient(135deg, #d63384 0%, #f67cb1 100%);
+    }
+    
+    /* 图表容器 */
+    .chart-container {
+        background: white;
+        border-radius: 15px;
+        padding: 1.8rem;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+        height: 370px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.03);
+    }
+    
+    .chart-container:hover {
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
+        transform: translateY(-5px);
+    }
+    
+    .chart-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 1.2rem;
+        color: #495057;
+        position: relative;
+        padding-bottom: 10px;
+    }
+    
+    .chart-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 40px;
+        height: 3px;
+        background: var(--bs-primary);
+        border-radius: 3px;
+    }
+    
+    .chart-container canvas {
+        max-height: 100%;
+    }
+    
+    /* 功能分隔标题 */
+    .section-title {
+        position: relative;
+        padding-left: 18px;
+        margin-bottom: 1.8rem;
+        font-weight: 600;
+        color: #343a40;
+        font-size: 1.4rem;
+    }
+    
+    .section-title::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 6px;
+        height: 30px;
+        background: var(--bs-primary);
+        border-radius: 6px;
+    }
+    
+    /* 四大模块标题颜色 */
+    .section-title.teaching::before { background: #20c997; }
+    .section-title.daily::before { background: #0dcaf0; }
+    .section-title.security::before { background: #6f42c1; }
+    .section-title.literacy::before { background: #fd7e14; }
+    
+    /* 模块卡片容器 */
+    .module-section {
+        background-color: #ffffff;
+        border-radius: 15px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        padding: 2rem;
+        margin-bottom: 2.5rem;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.03);
+    }
+    
+    .module-section:hover {
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+    }
+    
+    .module-section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.8rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .text-success { color: #20c997 !important; }
+    .text-info { color: #0dcaf0 !important; }
+    .text-purple { color: #6f42c1 !important; }
+    .text-orange { color: #fd7e14 !important; }
+    
+    /* 按钮样式美化 */
+    .btn-outline-success, .btn-outline-info, .btn-outline-secondary, .btn-outline-warning {
+        border-width: 2px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        padding: 0.4rem 1rem;
+    }
+    
+    .btn-outline-success:hover, .btn-outline-info:hover, .btn-outline-secondary:hover, .btn-outline-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* 功能卡片内部内容修饰 */
+    .card-text {
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+    
+    /* 响应式调整 */
+    @media (max-width: 768px) {
+        .stat-card {
+            margin-bottom: 1.5rem;
+        }
+        
+        .dashboard-header {
+            padding: 1.5rem;
+        }
+        
+        .welcome-text {
+            font-size: 1.6rem;
+        }
+    }
+    
+    /* 动画效果 */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .animate-fadeInUp {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+    
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    
+    /* 顶部按钮美化 */
+    .dashboard-header .btn {
+        border-radius: 10px;
+        padding: 0.5rem 1.2rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .dashboard-header .btn-light {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        backdrop-filter: blur(5px);
+    }
+    
+    .dashboard-header .btn-light:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-3px);
+    }
+    
+    .dashboard-header .btn-outline-light {
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+    
+    .dashboard-header .btn-outline-light:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-3px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- 顶部欢迎与日期显示 -->
+    <div class="dashboard-header animate-fadeInUp">
+        <div class="row">
+            <div class="col-md-6">
+                <h1 class="welcome-text" id="welcomeText">欢迎您，{{ current_user.username }}</h1>
+                <p class="date-display"><i class="far fa-calendar-alt me-2"></i><span id="current-datetime"></span></p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <a href="{{ url_for('admin.settings') }}" class="btn btn-light btn-sm">
+                    <i class="fas fa-cog me-1"></i> 系统设置
+                </a>
+                <a href="{{ url_for('admin.help') }}" class="btn btn-outline-light btn-sm ms-2">
+                    <i class="fas fa-question-circle me-1"></i> 帮助
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计数据卡片 -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3 mb-md-0 animate-fadeInUp delay-1">
+            <div class="card stat-card bg-primary-soft text-white">
+                <div class="card-body">
+                    <div class="d-flex flex-column">
+                        <div class="stat-title">学生总数</div>
+                        <div class="stat-count">{{ student_count }}</div>
+                        <div class="stat-icon">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3 mb-md-0 animate-fadeInUp delay-2">
+            <div class="card stat-card bg-success-soft text-white">
+                <div class="card-body">
+                    <div class="d-flex flex-column">
+                        <div class="stat-title">教师总数</div>
+                        <div class="stat-count">{{ teacher_count }}</div>
+                        <div class="stat-icon">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3 mb-md-0 animate-fadeInUp delay-3">
+            <div class="card stat-card bg-info-soft text-white">
+                <div class="card-body">
+                    <div class="d-flex flex-column">
+                        <div class="stat-title">课程总数</div>
+                        <div class="stat-count">{{ course_count }}</div>
+                        <div class="stat-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 animate-fadeInUp delay-4">
+            <div class="card stat-card bg-warning-soft text-white">
+                <div class="card-body">
+                    <div class="d-flex flex-column">
+                        <div class="stat-title">班级总数</div>
+                        <div class="stat-count">{{ class_count }}</div>
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图表部分 -->
+    <div class="row mb-4">
+        <div class="col-md-8 animate-fadeInUp">
+            <div class="chart-container">
+                <h5 class="chart-title"><i class="fas fa-chart-line me-2"></i>学生人数趋势分析</h5>
+                <div style="height: 280px; position: relative;">
+                    <canvas id="studentTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 animate-fadeInUp delay-1">
+            <div class="chart-container">
+                <h5 class="chart-title"><i class="fas fa-chart-pie me-2"></i>专业学生分布</h5>
+                <div style="height: 280px; position: relative;">
+                    <canvas id="majorDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    <!-- 数据大屏模块 -->
+    <div class="row mb-4">
+        <div class="col-12 animate-fadeInUp">
+            <div class="chart-container" style="height: 600px;">
+                <h5 class="chart-title">
+                    <i class="fas fa-chart-network me-2"></i>智能融合数据大屏
+                    <a href="http://192.168.151.7:50401/dv/3d1776190195e49b0db5/" target="_blank" class="btn btn-sm btn-outline-primary float-end">
+                        <i class="fas fa-external-link-alt me-1"></i>全屏查看
+                    </a>
+                </h5>
+                <iframe 
+                    src="http://192.168.151.7:50401/dv/3d1776190195e49b0db5/" 
+                    style="width: 100%; height: 100%; border: none; border-radius: 10px;"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+                </iframe>
+                </div>
+            </div>
+        </div>
+        
+    <!-- 常用功能 -->
+    <h4 class="section-title animate-fadeInUp mb-3">常用功能</h4>
+    <div class="row mb-4">
+        {% for item in [
+            {'icon': 'user-graduate', 'title': '学生管理', 'url': url_for('admin.students_new'), 'color': 'primary'},
+            {'icon': 'chalkboard-teacher', 'title': '教师管理', 'url': url_for('admin.teachers'), 'color': 'success'},
+            {'icon': 'book', 'title': '课程管理', 'url': url_for('admin.courses_new'), 'color': 'info'},
+            {'icon': 'users', 'title': '班级管理', 'url': url_for('admin.classes'), 'color': 'warning'},
+            {'icon': 'graduation-cap', 'title': '专业管理', 'url': url_for('admin.majors'), 'color': 'danger'},
+            {'icon': 'building', 'title': '部门管理', 'url': url_for('admin.departments'), 'color': 'secondary'}
+        ] %}
+        <div class="col-md-2 col-sm-4 col-6 mb-3">
+            <a href="{{ item.url }}" class="text-decoration-none">
+                <div class="card module-card h-100">
+                    <div class="card-body text-center">
+                        <div class="card-icon bg-{{ item.color }}-soft mx-auto">
+                            <i class="fas fa-{{ item.icon }} text-white"></i>
+                        </div>
+                        <h6 class="module-title">{{ item.title }}</h6>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+        
+    <!-- 教学管理模块 -->
+    <div class="module-section animate-fadeInUp">
+        <h4 class="module-section-title text-success">
+            <i class="fas fa-chalkboard me-2"></i>教学管理
+        </h4>
+        <div class="row">
+            {% for item in [
+                {'icon': 'calendar-alt', 'title': '排课管理', 'desc': '安排课程表和教学计划', 'color': 'success'},
+                {'icon': 'book', 'title': '课程管理', 'desc': '管理课程信息和教材', 'color': 'success'},
+                {'icon': 'clipboard-list', 'title': '班级管理', 'desc': '管理班级和班主任', 'color': 'success'},
+                {'icon': 'graduation-cap', 'title': '专业管理', 'desc': '管理专业和培养计划', 'color': 'success'},
+                {'icon': 'calculator', 'title': '成绩管理', 'desc': '录入和管理学生成绩', 'color': 'success'},
+                {'icon': 'user-check', 'title': '考勤管理', 'desc': '记录学生出勤情况', 'color': 'success'},
+                {'icon': 'file-alt', 'title': '实习记录', 'desc': '管理学生实习信息', 'color': 'success'},
+                {'icon': 'file-signature', 'title': '教案管理', 'desc': '创建和管理教学计划', 'color': 'success'}
+            ] %}
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card module-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="card-icon bg-{{ item.color }} me-3" style="width: 40px; height: 40px; margin-bottom: 0;">
+                                <i class="fas fa-{{ item.icon }} text-white"></i>
+                            </div>
+                            <h5 class="module-title mb-0">{{ item.title }}</h5>
+                        </div>
+                        <p class="card-text text-muted">{{ item.desc }}</p>
+                        <a href="#" class="btn btn-sm btn-outline-{{ item.color }} w-100 mt-auto">
+                            <i class="fas fa-arrow-right me-1"></i> 进入
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            </div>
+        </div>
+        
+    <!-- 日常管理模块 -->
+    <div class="module-section animate-fadeInUp">
+        <h4 class="module-section-title text-info">
+            <i class="fas fa-clipboard me-2"></i>日常管理
+        </h4>
+        <div class="row">
+            {% for item in [
+                {'icon': 'user-graduate', 'title': '学生管理', 'desc': '管理学生基本信息', 'color': 'info'},
+                {'icon': 'chalkboard-teacher', 'title': '教师管理', 'desc': '管理教师档案和工作量', 'color': 'info'},
+                {'icon': 'building', 'title': '场地管理', 'desc': '教室和场地预约使用', 'color': 'info'},
+                {'icon': 'id-card', 'title': '教职工管理', 'desc': '管理职工薪资和绩效', 'color': 'info'},
+                {'icon': 'user-friends', 'title': '学生处管理', 'desc': '处理学生日常事务', 'color': 'info'},
+                {'icon': 'door-open', 'title': '门禁管理', 'desc': '管理校园门禁系统', 'color': 'info'},
+                {'icon': 'question-circle', 'title': '访客管理', 'desc': '登记和管理校外访客', 'color': 'info'},
+                {'icon': 'calendar-day', 'title': '消息管理', 'desc': '发布校园通知公告', 'color': 'info'}
+            ] %}
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card module-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="card-icon bg-{{ item.color }} me-3" style="width: 40px; height: 40px; margin-bottom: 0;">
+                                <i class="fas fa-{{ item.icon }} text-white"></i>
+                            </div>
+                            <h5 class="module-title mb-0">{{ item.title }}</h5>
+                        </div>
+                        <p class="card-text text-muted">{{ item.desc }}</p>
+                        <a href="#" class="btn btn-sm btn-outline-{{ item.color }} w-100 mt-auto">
+                            <i class="fas fa-arrow-right me-1"></i> 进入
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            </div>
+        </div>
+        
+    <!-- 安全管控模块 -->
+    <div class="module-section animate-fadeInUp">
+        <h4 class="module-section-title text-purple">
+            <i class="fas fa-shield-alt me-2"></i>安全管控
+        </h4>
+        <div class="row">
+            {% for item in [
+                {'icon': 'search', 'title': '事件检索', 'desc': '查询安全事件记录', 'color': 'purple'},
+                {'icon': 'video', 'title': '视频监控', 'desc': '校园监控系统管理', 'color': 'purple'},
+                {'icon': 'user-shield', 'title': '门禁管理', 'desc': '管理门禁权限和记录', 'color': 'purple'},
+                {'icon': 'clipboard-check', 'title': '规则配置', 'desc': '设置校园安全规则', 'color': 'purple'},
+                {'icon': 'exclamation-triangle', 'title': '返校考勤', 'desc': '管理学生返校记录', 'color': 'purple'},
+                {'icon': 'map-marked-alt', 'title': '权限场景', 'desc': '管理不同场景权限', 'color': 'purple'},
+                {'icon': 'sliders-h', 'title': '权限分配', 'desc': '分配用户系统权限', 'color': 'purple'},
+                {'icon': 'tasks', 'title': '考勤预警', 'desc': '设置考勤异常预警', 'color': 'purple'}
+            ] %}
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card module-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="card-icon bg-purple-soft me-3" style="width: 40px; height: 40px; margin-bottom: 0;">
+                                <i class="fas fa-{{ item.icon }} text-white"></i>
+                            </div>
+                            <h5 class="module-title mb-0">{{ item.title }}</h5>
+                        </div>
+                        <p class="card-text text-muted">{{ item.desc }}</p>
+                        <a href="#" class="btn btn-sm btn-outline-secondary w-100 mt-auto">
+                            <i class="fas fa-arrow-right me-1"></i> 进入
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            </div>
+        </div>
+        
+    <!-- 素养平台模块 -->
+    <div class="module-section animate-fadeInUp">
+        <h4 class="module-section-title text-orange">
+            <i class="fas fa-brain me-2"></i>素养平台
+        </h4>
+        <div class="row">
+            {% for item in [
+                {'icon': 'award', 'title': '素养首页', 'desc': '素养平台总览', 'color': 'orange', 'url': url_for('system.literacy_certificates')},
+                {'icon': 'file-alt', 'title': '素养报告', 'desc': '查看和管理素养报告', 'color': 'orange', 'url': url_for('system.literacy_reports')},
+                {'icon': 'certificate', 'title': '素养证书', 'desc': '查看和管理素养证书', 'color': 'orange', 'url': url_for('system.literacy_certificates')},
+                {'icon': 'book-open', 'title': '素养资源', 'desc': '浏览各类素养资源', 'color': 'orange', 'url': url_for('system.literacy_resources')},
+                {'icon': 'image', 'title': '推送图像', 'desc': '管理素养相关图像', 'color': 'orange'},
+                {'icon': 'desktop', 'title': '模型管理', 'desc': '管理素养评估模型', 'color': 'orange'},
+                {'icon': 'cogs', 'title': '数据维护', 'desc': '维护素养平台数据', 'color': 'orange'},
+                {'icon': 'chart-line', 'title': '素养报表', 'desc': '查看学生素养统计', 'color': 'orange'}
+            ] %}
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card module-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="card-icon bg-orange-soft me-3" style="width: 40px; height: 40px; margin-bottom: 0;">
+                                <i class="fas fa-{{ item.icon }} text-white"></i>
+                            </div>
+                            <h5 class="module-title mb-0">{{ item.title }}</h5>
+                        </div>
+                        <p class="card-text text-muted">{{ item.desc }}</p>
+                        <a href="{{ item.url if item.url is defined else '#' }}" class="btn btn-sm btn-outline-warning w-100 mt-auto">
+                            <i class="fas fa-arrow-right me-1"></i> 进入
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- 基础数据模块 -->
+    <div class="module-section animate-fadeInUp">
+        <h4 class="module-section-title text-primary">
+            <i class="fas fa-database me-2"></i>基础数据
+        </h4>
+        <div class="row">
+            {% for item in [
+                {'icon': 'calendar-alt', 'title': '学期设置', 'desc': '管理学年学期信息', 'color': 'primary', 'options': ['2023-2024学年第一学期', '2023-2024学年第二学期', '2024-2025学年第一学期']},
+                {'icon': 'list-ul', 'title': '数据字典', 'desc': '管理系统基础代码', 'color': 'primary', 'options': ['学生状态', '教师职称', '课程类型', '成绩等级']},
+                {'icon': 'sliders-h', 'title': '参数配置', 'desc': '配置系统运行参数', 'color': 'primary', 'options': ['学分设置', '选课设置', '成绩规则', '系统阈值']},
+                {'icon': 'hdd', 'title': '数据备份', 'desc': '备份与恢复数据', 'color': 'primary', 'options': ['创建备份', '恢复备份', '备份历史', '定时备份']}
+            ] %}
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card module-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="card-icon bg-{{ item.color }}-soft me-3" style="width: 40px; height: 40px; margin-bottom: 0;">
+                                <i class="fas fa-{{ item.icon }} text-white"></i>
+                            </div>
+                            <h5 class="module-title mb-0">{{ item.title }}</h5>
+                        </div>
+                        <p class="card-text text-muted">{{ item.desc }}</p>
+                        <div class="dropdown mt-2">
+                            <button class="btn btn-sm btn-outline-{{ item.color }} w-100 dropdown-toggle" type="button" id="{{ item.title }}-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-list me-1"></i> 选择操作
+                            </button>
+                            <ul class="dropdown-menu w-100" aria-labelledby="{{ item.title }}-dropdown">
+                                {% for option in item.options %}
+                                <li><a class="dropdown-item" href="#">{{ option }}</a></li>
+                                {% endfor %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-{{ item.color }}" href="#"><i class="fas fa-list-ul me-1"></i> 查看全部</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="row mt-3">
+            {% for item in [
+                {'icon': 'file-import', 'title': '数据导入导出', 'desc': '批量导入导出数据', 'color': 'primary', 'options': ['学生数据', '教师数据', '课程数据', '成绩数据']},
+                {'icon': 'history', 'title': '系统日志', 'desc': '查看系统操作记录', 'color': 'primary', 'options': ['登录日志', '操作日志', '错误日志', '安全日志']},
+                {'icon': 'table', 'title': '代码表管理', 'desc': '维护系统代码表', 'color': 'primary', 'options': ['院系代码', '专业代码', '课程代码', '用户角色']},
+                {'icon': 'calendar', 'title': '校历管理', 'desc': '设置学校校历', 'color': 'primary', 'options': ['教学周历', '假期设置', '重要日期', '考试安排']}
+            ] %}
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card module-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="card-icon bg-{{ item.color }}-soft me-3" style="width: 40px; height: 40px; margin-bottom: 0;">
+                                <i class="fas fa-{{ item.icon }} text-white"></i>
+                            </div>
+                            <h5 class="module-title mb-0">{{ item.title }}</h5>
+                        </div>
+                        <p class="card-text text-muted">{{ item.desc }}</p>
+                        <div class="dropdown mt-2">
+                            <button class="btn btn-sm btn-outline-{{ item.color }} w-100 dropdown-toggle" type="button" id="{{ item.title }}-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-list me-1"></i> 选择操作
+                            </button>
+                            <ul class="dropdown-menu w-100" aria-labelledby="{{ item.title }}-dropdown">
+                                {% for option in item.options %}
+                                <li><a class="dropdown-item" href="#">{{ option }}</a></li>
+                                {% endfor %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-{{ item.color }}" href="#"><i class="fas fa-list-ul me-1"></i> 查看全部</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- 班级基础数据 -->
+        <h5 class="mt-4 mb-3"><i class="fas fa-users me-2"></i>班级基础数据</h5>
+        <div class="row">
+            {% for item in [
+                {'icon': 'user-friends', 'title': '班级类型', 'desc': '管理班级类型数据', 'color': 'warning', 'options': ['普通班', '实验班', '特长班', '国际班']},
+                {'icon': 'clipboard-list', 'title': '班级属性', 'desc': '管理班级属性设置', 'color': 'warning', 'options': ['班级容量', '班级位置', '班级状态', '班级编码']},
+                {'icon': 'user-tag', 'title': '班主任分配', 'desc': '管理班主任分配', 'color': 'warning', 'options': ['分配设置', '历史记录', '批量设置', '一键分配']},
+                {'icon': 'chalkboard', 'title': '班级排课规则', 'desc': '设置班级排课规则', 'color': 'warning', 'options': ['时间规则', '教室规则', '冲突检测', '排课优化']}
+            ] %}
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card module-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="card-icon bg-{{ item.color }}-soft me-3" style="width: 40px; height: 40px; margin-bottom: 0;">
+                                <i class="fas fa-{{ item.icon }} text-white"></i>
+                            </div>
+                            <h5 class="module-title mb-0">{{ item.title }}</h5>
+                        </div>
+                        <p class="card-text text-muted">{{ item.desc }}</p>
+                        <div class="dropdown mt-2">
+                            <button class="btn btn-sm btn-outline-{{ item.color }} w-100 dropdown-toggle" type="button" id="{{ item.title }}-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-list me-1"></i> 选择操作
+                            </button>
+                            <ul class="dropdown-menu w-100" aria-labelledby="{{ item.title }}-dropdown">
+                                {% for option in item.options %}
+                                <li><a class="dropdown-item" href="{{ url_for('admin.classes') }}?type={{ item.title }}&action={{ option }}">{{ option }}</a></li>
+                                {% endfor %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-{{ item.color }}" href="{{ url_for('admin.classes') }}?type={{ item.title }}"><i class="fas fa-list-ul me-1"></i> 查看全部</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // 设置时间依赖的问候语
+    function updateGreeting() {
+        const hour = new Date().getHours();
+        const welcomeText = document.getElementById('welcomeText');
+        const username = '{{ current_user.username }}';
+        
+        if (hour < 6) {
+            welcomeText.textContent = `夜深了，${username}`;
+        } else if (hour < 9) {
+            welcomeText.textContent = `早上好，${username}`;
+        } else if (hour < 12) {
+            welcomeText.textContent = `上午好，${username}`;
+        } else if (hour < 14) {
+            welcomeText.textContent = `中午好，${username}`;
+        } else if (hour < 18) {
+            welcomeText.textContent = `下午好，${username}`;
+        } else if (hour < 22) {
+            welcomeText.textContent = `晚上好，${username}`;
+        } else {
+            welcomeText.textContent = `夜深了，${username}`;
+        }
+    }
+
+    // 更新日期时间显示
+    function updateDateTime() {
+        const now = new Date();
+        const options = { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric', 
+            weekday: 'long',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        };
+        document.getElementById('current-datetime').textContent = now.toLocaleDateString('zh-CN', options);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        updateGreeting();
+        updateDateTime();
+        
+        // 每分钟更新一次时间和问候语
+        setInterval(function() {
+            updateDateTime();
+            updateGreeting();
+        }, 60000);
+
+        // 图表初始化
+        const studentTrendCtx = document.getElementById('studentTrendChart').getContext('2d');
+        
+        // 渐变背景
+        let gradientFill = studentTrendCtx.createLinearGradient(0, 0, 0, 400);
+        gradientFill.addColorStop(0, 'rgba(13, 110, 253, 0.3)');
+        gradientFill.addColorStop(1, 'rgba(13, 110, 253, 0)');
+        
+        const studentTrendChart = new Chart(studentTrendCtx, {
+            type: 'line',
+            data: {
+                labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                datasets: [{
+                    label: '学生人数',
+                    data: [2150, 2220, 2280, 2350, 2410, 2500],
+                    borderColor: '#0d6efd',
+                    borderWidth: 3,
+                    backgroundColor: gradientFill,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#0d6efd',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        titleColor: '#000',
+                        bodyColor: '#333',
+                        borderColor: '#ddd',
+                        borderWidth: 1,
+                        cornerRadius: 10,
+                        padding: 10,
+                        caretSize: 8,
+                        displayColors: false,
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                return tooltipItems[0].label + ' 学生数据';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            drawBorder: false,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            font: {
+                                size: 12
+                            },
+                            padding: 10
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                elements: {
+                    line: {
+                        capBezierPoints: true
+                    }
+                }
+            }
+        });
+        
+        // 专业学生分布图
+        const majorDistributionCtx = document.getElementById('majorDistributionChart').getContext('2d');
+        const majorDistributionChart = new Chart(majorDistributionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['计算机科学', '机械工程', '电子工程', '经济管理', '其他'],
+                datasets: [{
+                    data: [30, 20, 15, 25, 10],
+                    backgroundColor: [
+                        '#0d6efd', 
+                        '#20c997', 
+                        '#0dcaf0', 
+                        '#ffc107', 
+                        '#6c757d'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: {
+                                size: 12,
+                                family: "Arial"
+                            },
+                            boxWidth: 15,
+                            padding: 15
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        titleColor: '#000',
+                        bodyColor: '#333',
+                        borderColor: '#ddd',
+                        borderWidth: 1,
+                        cornerRadius: 10,
+                        padding: 10,
+                        caretSize: 8,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += context.parsed + '%';
+                                return label;
+                            }
+                        }
+                    }
+                },
+                cutout: '70%',
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

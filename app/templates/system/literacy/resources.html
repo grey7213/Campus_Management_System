@@ -1,0 +1,413 @@
+{% extends 'admin/admin_layout.html' %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
+
+{% block title %}素养资源 - {{ settings.get('site_name', '校园综合管理平台') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="fas fa-book-open me-2 text-primary"></i> 素养资源库
+        </h2>
+        <div>
+            {% if current_user.is_administrator() %}
+            <a href="#" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> 添加资源
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">资源总数</h6>
+                            <h2 class="mb-0">{{ resources|length }}</h2>
+                        </div>
+                        <i class="fas fa-book-open fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">视频资源</h6>
+                            <h2 class="mb-0">{{ resources|selectattr('category', 'equalto', 'video')|list|length }}</h2>
+                        </div>
+                        <i class="fas fa-video fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-info text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">文档资源</h6>
+                            <h2 class="mb-0">{{ resources|selectattr('category', 'equalto', 'document')|list|length }}</h2>
+                        </div>
+                        <i class="fas fa-file-alt fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">课程资源</h6>
+                            <h2 class="mb-0">{{ resources|selectattr('category', 'equalto', 'course')|list|length }}</h2>
+                        </div>
+                        <i class="fas fa-graduation-cap fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <form action="{{ url_for('system.literacy_resources') }}" method="GET" class="d-flex flex-wrap gap-2 align-items-center">
+                        <div class="input-group" style="width: auto;">
+                            <input type="text" name="search" class="form-control" placeholder="搜索资源..." value="{{ request.args.get('search', '') }}">
+                            <button class="btn btn-outline-secondary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+
+                        <select name="category" class="form-select" style="width: auto;">
+                            <option value="">所有类型</option>
+                            <option value="video" {% if request.args.get('category') == 'video' %}selected{% endif %}>视频资源</option>
+                            <option value="document" {% if request.args.get('category') == 'document' %}selected{% endif %}>文档资源</option>
+                            <option value="book" {% if request.args.get('category') == 'book' %}selected{% endif %}>书籍资源</option>
+                            <option value="article" {% if request.args.get('category') == 'article' %}selected{% endif %}>文章资源</option>
+                            <option value="course" {% if request.args.get('category') == 'course' %}selected{% endif %}>课程资源</option>
+                            <option value="software" {% if request.args.get('category') == 'software' %}selected{% endif %}>软件资源</option>
+                            <option value="other" {% if request.args.get('category') == 'other' %}selected{% endif %}>其他资源</option>
+                        </select>
+
+                        <button type="submit" class="btn btn-primary">筛选</button>
+                        <a href="{{ url_for('system.literacy_resources') }}" class="btn btn-outline-secondary">重置</a>
+                    </form>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-secondary active" id="card-view-btn">
+                            <i class="fas fa-th"></i> 卡片视图
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="list-view-btn">
+                            <i class="fas fa-list"></i> 列表视图
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 资源卡片视图 -->
+    <div id="card-view" class="mb-4">
+        <div class="row g-4">
+            {% if resources %}
+                {% for resource in resources %}
+                <div class="col-xl-3 col-lg-4 col-md-6">
+                    <div class="card h-100 shadow-sm resource-card">
+                        <div class="resource-thumbnail">
+                            {% if resource.thumbnail %}
+                            <img src="{{ resource.thumbnail }}" class="card-img-top" alt="{{ resource.title }}">
+                            {% else %}
+                                {% if resource.category == 'video' %}
+                                <div class="placeholder-thumbnail bg-primary">
+                                    <i class="fas fa-video"></i>
+                                </div>
+                                {% elif resource.category == 'document' %}
+                                <div class="placeholder-thumbnail bg-info">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                {% elif resource.category == 'book' %}
+                                <div class="placeholder-thumbnail bg-danger">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                {% elif resource.category == 'course' %}
+                                <div class="placeholder-thumbnail bg-warning">
+                                    <i class="fas fa-graduation-cap"></i>
+                                </div>
+                                {% else %}
+                                <div class="placeholder-thumbnail bg-secondary">
+                                    <i class="fas fa-file"></i>
+                                </div>
+                                {% endif %}
+                            {% endif %}
+                            <div class="resource-category">
+                                {% if resource.category == 'video' %}
+                                    <span class="badge bg-primary">视频</span>
+                                {% elif resource.category == 'document' %}
+                                    <span class="badge bg-info">文档</span>
+                                {% elif resource.category == 'book' %}
+                                    <span class="badge bg-danger">书籍</span>
+                                {% elif resource.category == 'article' %}
+                                    <span class="badge bg-success">文章</span>
+                                {% elif resource.category == 'course' %}
+                                    <span class="badge bg-warning">课程</span>
+                                {% elif resource.category == 'software' %}
+                                    <span class="badge bg-dark">软件</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">其他</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title" title="{{ resource.title }}">
+                                {{ resource.title }}
+                            </h5>
+                            <p class="card-text text-muted small">{{ resource.description|truncate(80) }}</p>
+                        </div>
+                        <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                            <div class="small text-muted">
+                                <i class="fas fa-eye me-1"></i> {{ resource.views }}
+                                <i class="fas fa-download ms-2 me-1"></i> {{ resource.downloads }}
+                            </div>
+                            <a href="{{ url_for('system.view_resource', id=resource.id) }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-info-circle me-1"></i> 详情
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="fas fa-book-open fa-4x mb-3 text-muted"></i>
+                        <p class="mb-2 fs-5">暂无素养资源</p>
+                        <p class="text-muted mb-4">目前没有任何素养资源</p>
+                        {% if current_user.is_administrator() %}
+                        <a href="#" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> 添加资源
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- 资源列表视图 -->
+    <div id="list-view" class="mb-4" style="display: none;">
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>标题</th>
+                            <th>类型</th>
+                            <th>浏览</th>
+                            <th>下载</th>
+                            <th>创建时间</th>
+                            <th>创建人</th>
+                            <th width="120">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if resources %}
+                            {% for resource in resources %}
+                            <tr>
+                                <td>{{ resource.id }}</td>
+                                <td>{{ resource.title }}</td>
+                                <td>
+                                    {% if resource.category == 'video' %}
+                                        <span class="badge bg-primary">视频</span>
+                                    {% elif resource.category == 'document' %}
+                                        <span class="badge bg-info">文档</span>
+                                    {% elif resource.category == 'book' %}
+                                        <span class="badge bg-danger">书籍</span>
+                                    {% elif resource.category == 'article' %}
+                                        <span class="badge bg-success">文章</span>
+                                    {% elif resource.category == 'course' %}
+                                        <span class="badge bg-warning">课程</span>
+                                    {% elif resource.category == 'software' %}
+                                        <span class="badge bg-dark">软件</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">其他</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ resource.views }}</td>
+                                <td>{{ resource.downloads }}</td>
+                                <td>{{ resource.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ resource.creator.name or resource.creator.username if resource.creator else '系统' }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('system.view_resource', id=resource.id) }}" class="btn btn-outline-primary" title="查看">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if current_user.is_administrator() %}
+                                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ resource.id }}" title="删除">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- 删除确认模态框 -->
+                                    <div class="modal fade" id="deleteModal{{ resource.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ resource.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="deleteModalLabel{{ resource.id }}">确认删除</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    确定要删除资源 "{{ resource.title }}" 吗？此操作不可撤销。
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                                    <form action="#" method="POST" style="display: inline;">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <button type="submit" class="btn btn-danger">确认删除</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center py-4">
+                                    <div class="py-5">
+                                        <i class="fas fa-book-open fa-4x mb-3 text-muted"></i>
+                                        <p class="mb-2 fs-5">暂无素养资源</p>
+                                        <p class="text-muted mb-4">目前没有任何素养资源</p>
+                                        {% if current_user.is_administrator() %}
+                                        <a href="#" class="btn btn-primary">
+                                            <i class="fas fa-plus me-1"></i> 添加资源
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    {% if pagination and pagination.pages > 1 %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-footer bg-white">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('system.literacy_resources', page=pagination.prev_num, search=request.args.get('search', ''), category=request.args.get('category', '')) if pagination.has_prev else '#' }}">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    
+                    {% for p in pagination.iter_pages() %}
+                        {% if p %}
+                            {% if p == pagination.page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ p }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('system.literacy_resources', page=p, search=request.args.get('search', ''), category=request.args.get('category', '')) }}">{{ p }}</a>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('system.literacy_resources', page=pagination.next_num, search=request.args.get('search', ''), category=request.args.get('category', '')) if pagination.has_next else '#' }}">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .resource-card {
+        transition: transform 0.2s;
+    }
+    .resource-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    .resource-thumbnail {
+        position: relative;
+        height: 160px;
+        overflow: hidden;
+    }
+    .resource-thumbnail img {
+        object-fit: cover;
+        height: 100%;
+        width: 100%;
+    }
+    .placeholder-thumbnail {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+    .placeholder-thumbnail i {
+        font-size: 3rem;
+    }
+    .resource-category {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+    .card-title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+</style>
+{% endblock %}
+
+{% block js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 卡片视图和列表视图切换
+    const cardViewBtn = document.getElementById('card-view-btn');
+    const listViewBtn = document.getElementById('list-view-btn');
+    const cardView = document.getElementById('card-view');
+    const listView = document.getElementById('list-view');
+    
+    cardViewBtn.addEventListener('click', function() {
+        cardView.style.display = 'block';
+        listView.style.display = 'none';
+        cardViewBtn.classList.add('active');
+        listViewBtn.classList.remove('active');
+    });
+    
+    listViewBtn.addEventListener('click', function() {
+        cardView.style.display = 'none';
+        listView.style.display = 'block';
+        listViewBtn.classList.add('active');
+        cardViewBtn.classList.remove('active');
+    });
+});
+</script>
+{% endblock %} 

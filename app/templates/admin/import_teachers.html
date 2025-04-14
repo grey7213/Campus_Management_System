@@ -1,0 +1,155 @@
+{% extends 'admin/admin_layout.html' %}
+
+{% block title %}批量导入教师 - {{ settings.get('site_name', '校园综合管理平台') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">批量导入教师</h3>
+                <a href="{{ url_for('admin.teachers') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> 返回教师列表
+                </a>
+            </div>
+            <p class="text-muted">通过Excel文件批量导入教师信息，系统会自动为教师创建对应的用户账号</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">上传Excel文件</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('admin.import_teachers') }}" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="mb-4">
+                            <div class="form-group">
+                                <label for="file" class="form-label">选择Excel文件</label>
+                                <input type="file" name="file" id="file" class="form-control" accept=".xlsx,.xls" required>
+                                <div class="form-text">支持.xlsx或.xls格式的Excel文件</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="skip_header" id="skip_header" checked>
+                                <label class="form-check-label" for="skip_header">
+                                    跳过首行（标题行）
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-info-circle fa-2x me-3"></i>
+                                </div>
+                                <div>
+                                    <h5>导入说明</h5>
+                                    <ul>
+                                        <li>每次导入最多支持500条记录</li>
+                                        <li>必填字段：工号、姓名、性别、邮箱</li>
+                                        <li>系统将自动生成用户账号，初始密码为工号</li>
+                                        <li>如果工号或邮箱已存在，该记录将被跳过</li>
+                                        <li>导入过程将显示成功、失败和跳过的记录数</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-file-import"></i> 开始导入
+                            </button>
+                            <a href="{{ url_for('admin.teachers') }}" class="btn btn-secondary">取消</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">模板下载</h5>
+                </div>
+                <div class="card-body">
+                    <p>请下载并使用我们提供的Excel模板格式：</p>
+                    <a href="{{ url_for('static', filename='templates/teacher_import_template.xlsx') }}" class="btn btn-success w-100 mb-3">
+                        <i class="fas fa-download me-2"></i> 下载导入模板
+                    </a>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        请严格按照模板格式填写数据，以确保导入成功
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">字段说明</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>字段名</th>
+                                    <th>是否必填</th>
+                                    <th>说明</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>工号</td>
+                                    <td><span class="badge bg-danger">必填</span></td>
+                                    <td>教师唯一ID，将作为登录名</td>
+                                </tr>
+                                <tr>
+                                    <td>姓名</td>
+                                    <td><span class="badge bg-danger">必填</span></td>
+                                    <td>教师姓名</td>
+                                </tr>
+                                <tr>
+                                    <td>性别</td>
+                                    <td><span class="badge bg-danger">必填</span></td>
+                                    <td>男/女</td>
+                                </tr>
+                                <tr>
+                                    <td>邮箱</td>
+                                    <td><span class="badge bg-danger">必填</span></td>
+                                    <td>用于登录和接收通知</td>
+                                </tr>
+                                <tr>
+                                    <td>职称</td>
+                                    <td><span class="badge bg-secondary">选填</span></td>
+                                    <td>讲师/助教/副教授/教授</td>
+                                </tr>
+                                <tr>
+                                    <td>院系ID</td>
+                                    <td><span class="badge bg-secondary">选填</span></td>
+                                    <td>教师所属院系的ID</td>
+                                </tr>
+                                <tr>
+                                    <td>电话</td>
+                                    <td><span class="badge bg-secondary">选填</span></td>
+                                    <td>联系电话</td>
+                                </tr>
+                                <tr>
+                                    <td>状态</td>
+                                    <td><span class="badge bg-secondary">选填</span></td>
+                                    <td>active(在职)/leave(休假)/retired(退休)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

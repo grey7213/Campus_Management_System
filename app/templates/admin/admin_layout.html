@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ settings.get('site_name', '智证校园管理系统') }}{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css">
+    {% if settings.get('favicon') %}
+    <link rel="shortcut icon" href="{{ settings.get('favicon') }}" type="image/x-icon">
+    {% endif %}
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <style>
+        :root {
+            --primary-color: {{ settings.get('theme_color', '#0d6efd') }};
+            --sidebar-width: 200px;
+            --header-height: 56px;
+        }
+        
+        body {
+            font-family: "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* 顶部导航 */
+        .main-header {
+            height: var(--header-height);
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .logo:hover {
+            color: white;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            font-size: 14px;
+            padding: 0 10px;
+        }
+        
+        .nav-links a:hover, .nav-links a.active {
+            color: white;
+        }
+        
+        /* 搜索框和用户菜单 */
+        .search-box {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            width: 200px;
+        }
+        
+        .search-box input {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 6px 8px;
+            width: 100%;
+        }
+        
+        .search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .search-box input:focus {
+            outline: none;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-menu a {
+            color: white;
+            font-size: 16px;
+        }
+        
+        /* 侧边栏 */
+        .sidebar {
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background-color: white;
+            border-right: 1px solid #eaeaea;
+            overflow-y: auto;
+            z-index: 900;
+        }
+        
+        .sidebar-menu {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+        
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #333;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        
+        .sidebar-menu li a:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .sidebar-menu li a.active {
+            background-color: #e6f7ff;
+            color: var(--primary-color);
+            border-right: 3px solid var(--primary-color);
+        }
+        
+        .sidebar-menu li a i {
+            margin-right: 10px;
+            width: 16px;
+            text-align: center;
+        }
+        
+        /* 主要内容 */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: calc(var(--header-height) + 20px) 20px 20px;
+            min-height: calc(100vh - var(--header-height));
+        }
+        
+        /* 功能模块 */
+        .module-section {
+            margin-bottom: 30px;
+        }
+        
+        .module-section h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+        }
+        
+        .module-item {
+            background-color: white;
+            border-radius: 6px;
+            padding: 15px 10px;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        
+        .module-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            color: var(--primary-color);
+        }
+        
+        .module-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            color: white;
+            font-size: 18px;
+        }
+        
+        .module-title {
+            font-size: 14px;
+            margin: 0;
+            color: inherit;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+        
+        /* 图标背景色 */
+        .bg-primary-light { background-color: var(--primary-color); }
+        .bg-success-light { background-color: #52c41a; }
+        .bg-info-light { background-color: #13c2c2; }
+        .bg-warning-light { background-color: #faad14; }
+        .bg-danger-light { background-color: #f5222d; }
+        .bg-purple-light { background-color: #722ed1; }
+        .bg-pink-light { background-color: #eb2f96; }
+        .bg-cyan-light { background-color: #36cfc9; }
+        .bg-orange-light { background-color: #fa8c16; }
+        .bg-yellow-light { background-color: #fadb14; }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -var(--sidebar-width);
+                transition: left 0.3s;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .sidebar.open {
+                left: 0;
+            }
+            
+            .search-box {
+                width: 150px;
+            }
+        }
+
+        /* 欢迎信息 */
+        .welcome-section {
+            margin-bottom: 20px;
+        }
+        
+        .welcome-heading {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .welcome-date {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* 待办事项卡片 */
+        .task-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        
+        .task-card h3 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        /* 重置按钮颜色使用主题色 */
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+            background-color: var(--primary-color);
+            filter: brightness(90%);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        a {
+            color: var(--primary-color);
+        }
+        
+        .text-primary {
+            color: var(--primary-color) !important;
+        }
+        
+        .bg-primary {
+            background-color: var(--primary-color) !important;
+        }
+        
+        .border-primary {
+            border-color: var(--primary-color) !important;
+        }
+        
+        /* 搜索下拉菜单 */
+        .search-dropdown {
+            position: relative;
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            width: 260px;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+            z-index: 1000;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .search-category {
+            padding: 10px 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .search-category:last-child {
+            border-bottom: none;
+        }
+        
+        .search-category h6 {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .search-results a {
+            display: block;
+            color: #333;
+            padding: 6px 0;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .search-results a:hover {
+            color: var(--primary-color);
+        }
+        
+        .search-results.show {
+            display: block;
+        }
+        
+        /* 用户下拉菜单 */
+        .user-dropdown {
+            position: relative;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            color: white;
+            cursor: pointer;
+            padding: 5px 8px;
+            border-radius: 4px;
+        }
+        
+        .user-info:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .user-menu-dropdown {
+            position: absolute;
+            top: 40px;
+            right: 0;
+            width: 200px;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: none;
+        }
+        
+        .user-menu-dropdown.show {
+            display: block;
+        }
+        
+        .user-menu-dropdown a {
+            display: block;
+            color: #333;
+            padding: 10px 15px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .user-menu-dropdown a:hover {
+            background-color: #f5f5f5;
+            color: var(--primary-color);
+        }
+        
+        .dropdown-divider {
+            height: 1px;
+            background-color: #e9ecef;
+            margin: 5px 0;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="main-header">
+        <div class="d-flex align-items-center">
+            <a href="{{ url_for('admin.index') }}" class="logo">
+                <i class="fas fa-school me-2"></i>
+                <span>智证校园管理系统</span>
+            </a>
+            <div class="nav-links ms-4">
+                <a href="{{ url_for('admin.dashboard') }}" class="{{ 'active' if request.endpoint == 'admin.dashboard' or request.endpoint == 'admin.new_dashboard' else '' }}">工作台</a>
+                <a href="{{ url_for('admin.application_center') }}" class="{{ 'active' if request.endpoint == 'admin.application_center' else '' }}">应用中心</a>
+            </div>
+        </div>
+        
+        <div class="d-flex align-items-center">
+            <div class="search-dropdown me-3">
+                <div class="search-box">
+                    <i class="fas fa-search" style="color: rgba(255, 255, 255, 0.6);"></i>
+                    <input type="text" id="appSearch" placeholder="搜索应用" autocomplete="off">
+                </div>
+                <div class="search-results" id="searchResults">
+                    <div class="search-category">
+                        <h6>基础功能</h6>
+                        <a href="{{ url_for('admin.students_new') }}"><i class="fas fa-user-graduate me-2"></i>学生管理</a>
+                        <a href="{{ url_for('admin.teachers') }}"><i class="fas fa-chalkboard-teacher me-2"></i>教师管理</a>
+                        <a href="{{ url_for('admin.courses_new') }}"><i class="fas fa-book me-2"></i>课程管理</a>
+                        <a href="{{ url_for('admin.classes') }}"><i class="fas fa-users me-2"></i>班级管理</a>
+                    </div>
+                    <div class="search-category">
+                        <h6>系统功能</h6>
+                        <a href="{{ url_for('admin.users') }}"><i class="fas fa-user me-2"></i>用户管理</a>
+                        <a href="{{ url_for('admin.settings') }}"><i class="fas fa-cog me-2"></i>系统设置</a>
+                        <a href="{{ url_for('admin.announcements') }}"><i class="fas fa-bullhorn me-2"></i>公告管理</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="user-menu">
+                <a href="#" title="消息通知"><i class="fas fa-bell"></i></a>
+                <a href="{{ url_for('admin.help') }}" title="帮助"><i class="fas fa-question-circle"></i></a>
+                <div class="user-dropdown">
+                    <div class="user-info">
+                        <i class="fas fa-user-circle me-1"></i>
+                        <span>{{ current_user.name if current_user.name else current_user.username }}</span>
+                        <i class="fas fa-chevron-down ms-1 small"></i>
+                    </div>
+                    <div class="user-menu-dropdown">
+                        <a href="#"><i class="fas fa-user me-2"></i>个人资料</a>
+                        <a href="{{ url_for('admin.settings') }}"><i class="fas fa-cog me-2"></i>设置</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>退出登录</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- 侧边栏 -->
+    <aside class="sidebar{{ ' compact' if settings.layout_style == 'compact' else '' }}">
+        <ul class="sidebar-menu">
+            <li>
+                <a href="{{ url_for('admin.new_dashboard') }}" class="{{ 'active' if request.endpoint == 'admin.new_dashboard' else '' }}">
+                    <i class="fas fa-tachometer-alt"></i> 仪表盘
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin.application_center') }}" class="{{ 'active' if request.endpoint == 'admin.application_center' else '' }}">
+                    <i class="fas fa-th"></i> 应用中心
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin.students_new') }}" class="{{ 'active' if request.endpoint == 'admin.students_new' else '' }}">
+                    <i class="fas fa-user-graduate"></i> 学生管理
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin.teachers') }}" class="{{ 'active' if request.endpoint == 'admin.teachers' else '' }}">
+                    <i class="fas fa-chalkboard-teacher"></i> 教师管理
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin.courses_new') }}" class="{{ 'active' if request.endpoint == 'admin.courses_new' else '' }}">
+                    <i class="fas fa-book"></i> 课程管理
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin.classes') }}" class="{{ 'active' if request.endpoint == 'admin.classes' else '' }}">
+                    <i class="fas fa-users"></i> 班级管理
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin.majors') }}" class="{{ 'active' if request.endpoint == 'admin.majors' else '' }}">
+                    <i class="fas fa-graduation-cap"></i> 专业管理
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin.departments') }}" class="{{ 'active' if request.endpoint == 'admin.departments' else '' }}">
+                    <i class="fas fa-building"></i> 院系管理
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin.users') }}" class="{{ 'active' if request.endpoint == 'admin.users' else '' }}">
+                    <i class="fas fa-user"></i> 用户管理
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin.announcements') }}" class="{{ 'active' if request.endpoint == 'admin.announcements' else '' }}">
+                    <i class="fas fa-bullhorn"></i> 公告管理
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin.settings') }}" class="{{ 'active' if request.endpoint == 'admin.settings' else '' }}">
+                    <i class="fas fa-cog"></i> 系统设置
+                </a>
+            </li>
+            <!-- 素养平台模块 -->
+            <li>
+                <a href="{{ url_for('system.literacy_certificates') }}" class="{{ 'active' if 'system.literacy_certificates' in request.endpoint else '' }}">
+                    <i class="fas fa-certificate"></i> 素养证书
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('system.literacy_reports') }}" class="{{ 'active' if 'system.literacy_reports' in request.endpoint else '' }}">
+                    <i class="fas fa-file-alt"></i> 素养报告
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('system.literacy_resources') }}" class="{{ 'active' if 'system.literacy_resources' in request.endpoint else '' }}">
+                    <i class="fas fa-book-open"></i> 素养资源
+                </a>
+            </li>
+        </ul>
+    </aside>
+    
+    <!-- 主要内容 -->
+    <main class="main-content">
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        
+        {% block content %}{% endblock %}
+    </main>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 当前日期格式化
+        function formatDate() {
+            const date = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            return date.toLocaleDateString('zh-CN', options);
+        }
+        
+        // 移动端菜单切换
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateElements = document.querySelectorAll('.current-date');
+            dateElements.forEach(el => {
+                el.textContent = formatDate();
+            });
+            
+            // 搜索应用功能
+            const appSearch = document.getElementById('appSearch');
+            const searchResults = document.getElementById('searchResults');
+            
+            // 点击搜索框时显示下拉菜单
+            appSearch.addEventListener('focus', function() {
+                searchResults.classList.add('show');
+            });
+            
+            // 在输入框中输入时过滤应用
+            appSearch.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const allLinks = searchResults.querySelectorAll('a');
+                
+                allLinks.forEach(link => {
+                    const linkText = link.textContent.toLowerCase();
+                    if (searchTerm === '' || linkText.includes(searchTerm)) {
+                        link.style.display = 'block';
+                    } else {
+                        link.style.display = 'none';
+                    }
+                });
+                
+                // 隐藏没有可见链接的类别
+                const categories = searchResults.querySelectorAll('.search-category');
+                categories.forEach(category => {
+                    const hasVisibleLinks = Array.from(category.querySelectorAll('a')).some(
+                        link => link.style.display !== 'none'
+                    );
+                    category.style.display = hasVisibleLinks ? 'block' : 'none';
+                });
+            });
+            
+            // 点击页面其他地方关闭搜索结果
+            document.addEventListener('click', function(e) {
+                if (!appSearch.contains(e.target) && !searchResults.contains(e.target)) {
+                    searchResults.classList.remove('show');
+                }
+            });
+        });
+        
+        // 搜索功能
+        const appSearch = document.getElementById('appSearch');
+        const searchResults = document.getElementById('searchResults');
+        
+        if (appSearch) {
+            appSearch.addEventListener('focus', () => {
+                searchResults.classList.add('show');
+            });
+            
+            appSearch.addEventListener('blur', (e) => {
+                // 如果点击的是搜索结果内部的元素，不隐藏结果
+                if (!searchResults.contains(e.relatedTarget)) {
+                    setTimeout(() => {
+                        searchResults.classList.remove('show');
+                    }, 200);
+                }
+            });
+            
+            appSearch.addEventListener('input', function() {
+                // 搜索逻辑可以在这里实现
+            });
+        }
+        
+        // 用户下拉菜单
+        const userInfo = document.querySelector('.user-info');
+        const userMenuDropdown = document.querySelector('.user-menu-dropdown');
+        
+        if (userInfo && userMenuDropdown) {
+            userInfo.addEventListener('click', (e) => {
+                e.stopPropagation(); // 阻止事件冒泡
+                userMenuDropdown.classList.toggle('show');
+            });
+            
+            // 点击页面其他地方关闭下拉菜单
+            document.addEventListener('click', (e) => {
+                if (userMenuDropdown.classList.contains('show') && !userMenuDropdown.contains(e.target)) {
+                    userMenuDropdown.classList.remove('show');
+                }
+            });
+            
+            // 防止点击下拉菜单内部时关闭菜单
+            userMenuDropdown.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

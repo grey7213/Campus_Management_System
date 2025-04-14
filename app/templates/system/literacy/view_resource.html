@@ -1,0 +1,292 @@
+{% extends 'admin/admin_layout.html' %}
+
+{% block title %}{{ resource.title }} - 素养资源 - {{ settings.get('site_name', '校园综合管理平台') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('system.literacy_resources') }}">素养资源库</a></li>
+            <li class="breadcrumb-item active">{{ resource.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- 资源信息卡片 -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle me-2 text-primary"></i> 资源详情
+                        </h5>
+                        <div>
+                            {% if current_user.is_administrator() %}
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteResourceModal">
+                                <i class="fas fa-trash me-1"></i> 删除资源
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="resource-header mb-4">
+                        <h1 class="mb-2">{{ resource.title }}</h1>
+                        <div class="d-flex align-items-center text-muted small mb-3">
+                            <div class="me-3">
+                                <i class="fas fa-calendar-alt me-1"></i> {{ resource.created_at.strftime('%Y-%m-%d') }}
+                            </div>
+                            <div class="me-3">
+                                <i class="fas fa-eye me-1"></i> {{ resource.views }} 次浏览
+                            </div>
+                            <div class="me-3">
+                                <i class="fas fa-download me-1"></i> {{ resource.downloads }} 次下载
+                            </div>
+                            {% if resource.creator %}
+                            <div class="me-3">
+                                <i class="fas fa-user me-1"></i> {{ resource.creator.name or resource.creator.username }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="category-badge mb-3">
+                            {% if resource.category == 'video' %}
+                                <span class="badge bg-primary">视频资源</span>
+                            {% elif resource.category == 'document' %}
+                                <span class="badge bg-info">文档资源</span>
+                            {% elif resource.category == 'book' %}
+                                <span class="badge bg-danger">书籍资源</span>
+                            {% elif resource.category == 'article' %}
+                                <span class="badge bg-success">文章资源</span>
+                            {% elif resource.category == 'course' %}
+                                <span class="badge bg-warning">课程资源</span>
+                            {% elif resource.category == 'software' %}
+                                <span class="badge bg-dark">软件资源</span>
+                            {% else %}
+                                <span class="badge bg-secondary">其他资源</span>
+                            {% endif %}
+                            
+                            {% for tag in resource.tags.split(',') if resource.tags %}
+                                <span class="badge bg-secondary">{{ tag.strip() }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    {% if resource.thumbnail %}
+                    <div class="text-center mb-4">
+                        <img src="{{ resource.thumbnail }}" class="img-fluid rounded" alt="{{ resource.title }}" style="max-height: 300px;">
+                    </div>
+                    {% endif %}
+                    
+                    <div class="resource-description mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">资源简介</h5>
+                        <div class="description-content">
+                            {% if resource.description %}
+                                {{ resource.description|safe }}
+                            {% else %}
+                                <p class="text-muted">暂无资源简介</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- 资源内容 - 根据类型显示不同内容 -->
+                    <div class="resource-content mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">资源内容</h5>
+                        
+                        {% if resource.category == 'video' %}
+                            {% if resource.video_url %}
+                            <div class="ratio ratio-16x9 mb-3">
+                                <iframe src="{{ resource.video_url }}" title="{{ resource.title }}" allowfullscreen></iframe>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-5 bg-light rounded">
+                                <i class="fas fa-video fa-4x mb-3 text-muted"></i>
+                                <p>视频资源尚未就绪</p>
+                            </div>
+                            {% endif %}
+                        {% elif resource.category == 'document' or resource.category == 'article' %}
+                            {% if resource.content %}
+                            <div class="document-preview p-3 rounded bg-light">
+                                {{ resource.content|safe }}
+                            </div>
+                            {% else %}
+                            <div class="text-center py-5 bg-light rounded">
+                                <i class="fas fa-file-alt fa-4x mb-3 text-muted"></i>
+                                <p>文档内容尚未就绪</p>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="text-center py-5 bg-light rounded">
+                                <i class="fas fa-file fa-4x mb-3 text-muted"></i>
+                                <p>请通过下方下载按钮获取资源</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- 资源附件 -->
+                    <div class="resource-attachments mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">资源附件</h5>
+                        
+                        {% if resource.file_url %}
+                        <div class="card mb-3">
+                            <div class="card-body py-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="fas {% if resource.category == 'video' %}fa-video{% elif resource.category == 'document' %}fa-file-alt{% elif resource.category == 'book' %}fa-book{% elif resource.category == 'course' %}fa-graduation-cap{% else %}fa-file{% endif %} me-2"></i>
+                                        <span>{{ resource.file_name or '下载附件' }}</span>
+                                    </div>
+                                    <a href="{{ url_for('system.download_resource', id=resource.id) }}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-download me-1"></i> 下载
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-muted">暂无资源附件</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- 推荐资源 -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-thumbs-up me-2 text-primary"></i> 推荐资源
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recommended_resources %}
+                        <div class="list-group list-group-flush">
+                            {% for rec in recommended_resources %}
+                            <a href="{{ url_for('system.view_resource', id=rec.id) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        {% if rec.thumbnail %}
+                                        <img src="{{ rec.thumbnail }}" alt="{{ rec.title }}" class="rounded" width="60" height="45" style="object-fit: cover;">
+                                        {% else %}
+                                        <div class="rounded bg-light d-flex align-items-center justify-content-center" style="width: 60px; height: 45px;">
+                                            <i class="fas {% if rec.category == 'video' %}fa-video{% elif rec.category == 'document' %}fa-file-alt{% elif rec.category == 'book' %}fa-book{% elif rec.category == 'course' %}fa-graduation-cap{% else %}fa-file{% endif %} text-muted"></i>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ms-3">
+                                        <div class="fw-medium text-truncate" style="max-width: 200px;">{{ rec.title }}</div>
+                                        <div class="small text-muted">
+                                            <i class="fas fa-eye me-1"></i> {{ rec.views }}
+                                            <i class="fas fa-download ms-2 me-1"></i> {{ rec.downloads }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-info-circle fa-3x mb-3 text-muted"></i>
+                            <p>暂无推荐资源</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- 能力素养类别 -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tags me-2 text-primary"></i> 素养类别
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <a href="{{ url_for('system.literacy_resources', category='all') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            所有资源
+                            <span class="badge bg-primary rounded-pill">{{ resource_counts.get('all', 0) }}</span>
+                        </a>
+                        <a href="{{ url_for('system.literacy_resources', category='video') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            视频资源
+                            <span class="badge bg-primary rounded-pill">{{ resource_counts.get('video', 0) }}</span>
+                        </a>
+                        <a href="{{ url_for('system.literacy_resources', category='document') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            文档资源
+                            <span class="badge bg-primary rounded-pill">{{ resource_counts.get('document', 0) }}</span>
+                        </a>
+                        <a href="{{ url_for('system.literacy_resources', category='book') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            书籍资源
+                            <span class="badge bg-primary rounded-pill">{{ resource_counts.get('book', 0) }}</span>
+                        </a>
+                        <a href="{{ url_for('system.literacy_resources', category='course') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            课程资源
+                            <span class="badge bg-primary rounded-pill">{{ resource_counts.get('course', 0) }}</span>
+                        </a>
+                        <a href="{{ url_for('system.literacy_resources', category='article') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            文章资源
+                            <span class="badge bg-primary rounded-pill">{{ resource_counts.get('article', 0) }}</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 热门标签 -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-hashtag me-2 text-primary"></i> 热门标签
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for tag, count in popular_tags.items() %}
+                        <a href="{{ url_for('system.literacy_resources', tag=tag) }}" class="btn btn-outline-secondary btn-sm">
+                            {{ tag }} <span class="badge bg-secondary ms-1">{{ count }}</span>
+                        </a>
+                        {% endfor %}
+                        
+                        {% if not popular_tags %}
+                        <div class="text-center py-3 w-100">
+                            <p class="text-muted">暂无标签</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除资源确认框 -->
+<div class="modal fade" id="deleteResourceModal" tabindex="-1" aria-labelledby="deleteResourceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteResourceModalLabel">确认删除</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                确定要删除素养资源 "{{ resource.title }}" 吗？此操作不可撤销。
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <form action="#" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">确认删除</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .description-content {
+        line-height: 1.6;
+    }
+    .document-preview {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %} 

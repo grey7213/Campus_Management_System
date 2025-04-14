@@ -1,0 +1,183 @@
+{% extends 'admin/admin_layout.html' %}
+
+{% block title %}编辑用户 - {{ settings.get('site_name', '智证融合') }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-user-edit me-2"></i>编辑用户</h2>
+        <a href="{{ url_for('admin.users') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> 返回用户列表
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin.edit_user', id=user.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="id" value="{{ user.id }}">
+                
+                <!-- 用户名和邮箱信息 -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="username" class="form-label fw-bold">用户名 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control {{ 'is-invalid' if form.username.errors else '' }}" id="username" name="username" value="{{ form.username.data or '' }}" required>
+                            {% if form.username.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.username.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">用户登录系统的唯一标识</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="email" class="form-label fw-bold">邮箱 <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control {{ 'is-invalid' if form.email.errors else '' }}" id="email" name="email" value="{{ form.email.data or '' }}" required>
+                            {% if form.email.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.email.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">用于接收系统通知和密码重置</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 真实姓名和手机号 -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="name" class="form-label fw-bold">真实姓名</label>
+                            <input type="text" class="form-control {{ 'is-invalid' if form.name.errors else '' }}" id="name" name="name" value="{{ form.name.data or '' }}">
+                            {% if form.name.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="phone" class="form-label fw-bold">手机号码</label>
+                            <input type="tel" class="form-control {{ 'is-invalid' if form.phone.errors else '' }}" id="phone" name="phone" value="{{ form.phone.data or '' }}">
+                            {% if form.phone.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.phone.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 密码和确认密码 -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="password" class="form-label fw-bold">密码</label>
+                            <input type="password" class="form-control {{ 'is-invalid' if form.password.errors else '' }}" id="password" name="password">
+                            {% if form.password.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.password.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">留空则不修改密码</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="password2" class="form-label fw-bold">确认密码</label>
+                            <input type="password" class="form-control {{ 'is-invalid' if form.password2.errors else '' }}" id="password2" name="password2">
+                            {% if form.password2.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.password2.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 角色和状态 -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="role" class="form-label fw-bold">用户角色 <span class="text-danger">*</span></label>
+                            <select class="form-select {{ 'is-invalid' if form.role.errors else '' }}" id="role" name="role" required>
+                                <option value="">-- 选择角色 --</option>
+                                {% for role_id, role_name in form.role.choices %}
+                                <option value="{{ role_id }}" {% if form.role.data == role_id %}selected{% endif %}>{{ role_name }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if form.role.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.role.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label class="form-label fw-bold">账户状态</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {% if form.is_active.data %}checked{% endif %}>
+                                <label class="form-check-label" for="is_active">
+                                    账户可用（取消选中则用户无法登录）
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 提交按钮 -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{{ url_for('admin.users') }}" class="btn btn-light me-md-2">取消</a>
+                    <button type="submit" class="btn btn-primary">保存修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 表单验证
+        const form = document.querySelector('form');
+        const password = document.getElementById('password');
+        const password2 = document.getElementById('password2');
+        
+        form.addEventListener('submit', function(event) {
+            if (password.value !== password2.value && password.value !== '') {
+                password2.setCustomValidity('密码不匹配');
+                event.preventDefault();
+            } else {
+                password2.setCustomValidity('');
+            }
+        });
+        
+        password2.addEventListener('input', function() {
+            if (password.value !== password2.value && password.value !== '') {
+                password2.setCustomValidity('密码不匹配');
+            } else {
+                password2.setCustomValidity('');
+            }
+        });
+    });
+</script>
+{% endblock %} 

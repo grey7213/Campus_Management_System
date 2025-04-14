@@ -1,0 +1,456 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - {{ settings.get('site_name', '智证融合') }}{% endblock %}
+
+{% block css %}
+<style>
+    /* 加载指示器 */
+    .loader-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease;
+    }
+    
+    .loader {
+        width: 48px;
+        height: 48px;
+        border: 5px solid #0062cc;
+        border-bottom-color: transparent;
+        border-radius: 50%;
+        animation: rotation 1s linear infinite;
+    }
+    
+    @keyframes rotation {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* 全局样式调整 */
+    body {
+        font-family: 'Nunito', 'Helvetica Neue', Arial, sans-serif;
+        color: #333;
+        background-color: #f8f9fa;
+    }
+    
+    /* 英雄部分样式 */
+    .hero-section {
+        background: linear-gradient(135deg, #0062cc 0%, #1976D2 100%);
+        color: white;
+        padding: 4rem 0;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-section h1 {
+        font-weight: 800;
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+    }
+    
+    .hero-section p {
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+        max-width: 600px;
+        opacity: 0.9;
+    }
+    
+    .hero-btn {
+        background: #fff;
+        color: #0062cc;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 30px;
+        font-weight: 600;
+        margin-right: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .hero-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+        background-color: #f8f9fa;
+    }
+    
+    .hero-btn.outline {
+        background: transparent;
+        color: white;
+        border: 2px solid white;
+    }
+    
+    .hero-btn.outline:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    /* 功能卡片样式 */
+    .features-section {
+        padding: 3rem 0;
+    }
+    
+    .features-section h2 {
+        text-align: center;
+        font-weight: 700;
+        margin-bottom: 2.5rem;
+        color: #0062cc;
+        position: relative;
+    }
+    
+    .features-section h2:after {
+        content: '';
+        width: 50px;
+        height: 3px;
+        background: #0062cc;
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .feature-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        height: 100%;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border-bottom: 3px solid transparent;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        border-bottom: 3px solid #0062cc;
+    }
+    
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: #0062cc;
+    }
+    
+    .feature-card h3 {
+        font-weight: 700;
+        margin-bottom: 0.8rem;
+        color: #333;
+    }
+    
+    .feature-card p {
+        color: #6c757d;
+        margin-bottom: 0;
+    }
+    
+    /* 统计部分样式 */
+    .stats-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 3rem 0;
+        margin: 3rem 0;
+        border-radius: 8px;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #0062cc;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-weight: 600;
+    }
+    
+    /* 底部样式 */
+    .site-footer {
+        background: #343a40;
+        color: white;
+        padding: 3rem 0 2rem;
+        margin-top: 3rem;
+    }
+    
+    .footer-heading {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 1.2rem;
+    }
+    
+    .footer-link {
+        color: rgba(255,255,255,0.7);
+        display: block;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .footer-link:hover {
+        color: white;
+        text-decoration: none;
+        transform: translateX(5px);
+    }
+    
+    .footer-bottom {
+        border-top: 1px solid rgba(255,255,255,0.1);
+        padding-top: 1.5rem;
+        margin-top: 2rem;
+        text-align: center;
+        color: rgba(255,255,255,0.6);
+        font-size: 0.9rem;
+    }
+    
+    /* 动画效果 */
+    .fade-in {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    
+    .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    /* 响应式调整 */
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 3rem 0;
+        }
+        
+        .hero-section h1 {
+            font-size: 2rem;
+        }
+        
+        .hero-section p {
+            font-size: 1rem;
+        }
+        
+        .feature-card {
+            margin-bottom: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 加载指示器 -->
+<div class="loader-container" id="loader">
+    <div class="loader"></div>
+</div>
+
+<!-- 英雄部分 -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="mb-3">{{ settings.get('site_name', '智证融合') }}</h1>
+                <p class="lead mb-4">重构育人新生态——全方位的教育管理平台，帮助学校提高管理效率，优化教学过程，增强师生互动。</p>
+                <div class="hero-buttons">
+                    <a href="{{ url_for('auth.login') }}" class="btn hero-btn">立即登录</a>
+                    <a href="#features" class="btn hero-btn outline">了解更多</a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <img src="{{ url_for('static', filename='img/school-illustration.svg') }}" alt="校园管理系统" class="img-fluid" style="max-height: 300px;">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 功能部分 -->
+<section id="features" class="features-section">
+    <div class="container">
+        <h2 class="fade-in">系统主要功能</h2>
+        <div class="row">
+            <!-- 人力资源管理 -->
+            <div class="col-md-6 col-lg-3 mb-4 fade-in">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>人力资源管理</h3>
+                    <p>教师档案管理、部门管理、职称评定、工资核算等功能，全方位解决人事管理问题。</p>
+                </div>
+            </div>
+            
+            <!-- 学生管理 -->
+            <div class="col-md-6 col-lg-3 mb-4 fade-in">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <h3>学生管理</h3>
+                    <p>学籍管理、考勤管理、成绩管理、学生档案等，便捷地追踪学生的学习和发展情况。</p>
+                </div>
+            </div>
+            
+            <!-- 课程管理 -->
+            <div class="col-md-6 col-lg-3 mb-4 fade-in">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <h3>课程管理</h3>
+                    <p>课程设置、排课管理、教室管理、教学计划制定等，合理安排学校的教学资源。</p>
+                </div>
+            </div>
+            
+            <!-- 系统管理 -->
+            <div class="col-md-6 col-lg-3 mb-4 fade-in">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3>系统管理</h3>
+                    <p>用户管理、权限设置、系统配置、数据备份等，确保系统安全稳定运行。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 统计部分 -->
+<section class="stats-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3 fade-in">
+                <div class="stat-item">
+                    <div class="stat-number">2000+</div>
+                    <div class="stat-label">学生数量</div>
+                </div>
+            </div>
+            <div class="col-md-3 fade-in">
+                <div class="stat-item">
+                    <div class="stat-number">100+</div>
+                    <div class="stat-label">教职工数量</div>
+                </div>
+            </div>
+            <div class="col-md-3 fade-in">
+                <div class="stat-item">
+                    <div class="stat-number">15+</div>
+                    <div class="stat-label">专业数量</div>
+                </div>
+            </div>
+            <div class="col-md-3 fade-in">
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">系统可用性</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 底部部分 -->
+<footer class="site-footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <h5 class="footer-heading">关于我们</h5>
+                <p>校园综合管理平台致力于为学校提供全方位的管理解决方案，提高管理效率，降低管理成本。</p>
+            </div>
+            <div class="col-md-2 mb-4">
+                <h5 class="footer-heading">快速链接</h5>
+                <a href="{{ url_for('main.index') }}" class="footer-link">首页</a>
+                <a href="{{ url_for('auth.login') }}" class="footer-link">登录</a>
+                <a href="#features" class="footer-link">功能</a>
+            </div>
+            <div class="col-md-3 mb-4">
+                <h5 class="footer-heading">联系方式</h5>
+                <p><i class="fas fa-envelope mr-2"></i> contact@example.com</p>
+                <p><i class="fas fa-phone mr-2"></i> (123) 456-7890</p>
+                <p><i class="fas fa-map-marker-alt mr-2"></i> 中国，北京</p>
+            </div>
+            <div class="col-md-3 mb-4">
+                <h5 class="footer-heading">关注我们</h5>
+                <div class="social-icons">
+                    <a href="#" class="mr-3"><i class="fab fa-weixin fa-2x"></i></a>
+                    <a href="#" class="mr-3"><i class="fab fa-weibo fa-2x"></i></a>
+                    <a href="#" class="mr-3"><i class="fab fa-qq fa-2x"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; {{ current_year }} 校园综合管理平台. 保留所有权利.</p>
+        </div>
+    </div>
+</footer>
+{% endblock %}
+
+{% block js %}
+<script>
+    // 页面加载完成后隐藏加载指示器
+    window.addEventListener('load', function() {
+        const loader = document.getElementById('loader');
+        setTimeout(function() {
+            loader.style.opacity = '0';
+            setTimeout(function() {
+                loader.style.display = 'none';
+            }, 500);
+        }, 300);
+    });
+    
+    // 延迟加载非关键资源
+    document.addEventListener('DOMContentLoaded', function() {
+        // 立即执行必要的代码
+        // 初始化首屏内容动画
+        const heroElements = document.querySelectorAll('.hero-section .fade-in');
+        heroElements.forEach(element => {
+            setTimeout(() => {
+                element.classList.add('visible');
+            }, 300);
+        });
+        
+        // 滚动动画效果使用IntersectionObserver来优化性能
+        if ('IntersectionObserver' in window) {
+            const fadeObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        fadeObserver.unobserve(entry.target); // 一旦显示，不再观察
+                    }
+                });
+            }, {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            });
+            
+            // 观察所有需要淡入的元素，但跳过英雄区域已处理的元素
+            const fadeElements = document.querySelectorAll('.features-section .fade-in, .stats-section .fade-in');
+            fadeElements.forEach(element => {
+                fadeObserver.observe(element);
+            });
+        } else {
+            // 降级处理：对于不支持IntersectionObserver的浏览器
+            function checkFade() {
+                const fadeElements = document.querySelectorAll('.fade-in:not(.visible)');
+                fadeElements.forEach(element => {
+                    const elementTop = element.getBoundingClientRect().top;
+                    const elementVisible = 150;
+                    
+                    if (elementTop < window.innerHeight - elementVisible) {
+                        element.classList.add('visible');
+                    }
+                });
+            }
+            
+            window.addEventListener('scroll', checkFade);
+            checkFade(); // 初始检查可见元素
+        }
+    });
+</script>
+{% endblock %}

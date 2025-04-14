@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}绑定微信 - {{ settings.get('site_name', '校园综合管理平台') }}{% endblock %}
+
+{% block css %}
+<style>
+    .bind-container {
+        max-width: 500px;
+        margin: 2rem auto;
+        padding: 2rem;
+        border-radius: 15px;
+        background-color: #fff;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .qrcode-container {
+        text-align: center;
+        margin: 2rem 0;
+    }
+    
+    .qrcode-img {
+        max-width: 200px;
+        margin: 0 auto;
+        display: block;
+    }
+    
+    .instructions {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-left: 4px solid #0d6efd;
+        border-radius: 5px;
+    }
+    
+    .status-badge {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+        border-radius: 30px;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+    
+    .status-waiting {
+        background-color: #ffc107;
+        color: #000;
+    }
+    
+    .status-success {
+        background-color: #198754;
+        color: #fff;
+    }
+    
+    .timer {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="bind-container">
+        <h3 class="text-center mb-4">绑定微信账号</h3>
+        
+        <div class="text-center mb-3">
+            <span class="status-badge status-waiting" id="bindStatus">等待扫码</span>
+        </div>
+        
+        <div class="qrcode-container">
+            <img src="data:image/png;base64,{{ qr_code }}" alt="微信绑定二维码" class="qrcode-img">
+            <p class="timer mt-2">二维码有效期: <span id="countdown">300</span>秒</p>
+        </div>
+        
+        <div class="instructions">
+            <h5><i class="fas fa-info-circle me-2"></i>绑定说明</h5>
+            <ol>
+                <li>请使用微信扫描上方二维码</li>
+                <li>关注公众号后自动完成绑定</li>
+                <li>绑定成功后，您将可以通过微信接收通知</li>
+            </ol>
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('user.profile') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> 返回个人中心
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const bindStatus = document.getElementById('bindStatus');
+        const countdownEl = document.getElementById('countdown');
+        const sceneId = "{{ scene_id }}";
+        let countdown = 300;
+        let checkInterval;
+        
+        // 启动倒计时
+        const timer = setInterval(function() {
+            countdown--;
+            countdownEl.textContent = countdown;
+            
+            if (countdown <= 0) {
+                clearInterval(timer);
+                clearInterval(checkInterval);
+                bindStatus.textContent = '二维码已过期';
+                bindStatus.classList.remove('status-waiting');
+                bindStatus.classList.add('text-danger');
+            }
+        }, 1000);
+        
+        // 定期检查绑定状态
+        checkInterval = setInterval(function() {
+            checkBindStatus(sceneId);
+        }, 3000);
+        
+        function checkBindStatus(sceneId) {
+            fetch('/user/wechat/check_bind?scene_id=' + sceneId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.bound) {
+                        clearInterval(timer);
+                        clearInterval(checkInterval);
+                        bindStatus.textContent = '绑定成功';
+                        bindStatus.classList.remove('status-waiting');
+                        bindStatus.classList.add('status-success');
+                        
+                        // 显示成功信息
+                        setTimeout(function() {
+                            window.location.href = "{{ url_for('user.profile') }}";
+                        }, 2000);
+                    }
+                })
+                .catch(error => console.error('检查绑定状态出错:', error));
+        }
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,380 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block title %}应用中心 - 智证校园管理系统{% endblock %}
+
+{% block css %}
+<style>
+    /* 整体容器样式 */
+    .app-container {
+        padding: 2rem;
+        background-color: #f8f9fa;
+        min-height: calc(100vh - 60px);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.02'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    /* 欢迎部分样式 */
+    .welcome-section {
+        background: linear-gradient(135deg, #0061f2 0%, #6e00ff 100%);
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .welcome-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 200%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: rotate(30deg);
+    }
+
+    .welcome-heading {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .welcome-date {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    /* 模块部分样式 */
+    .module-section {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: all 0.3s ease;
+    }
+
+    .module-section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    .module-section h3 {
+        color: #2c3e50;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .module-section h3 i {
+        font-size: 1.75rem;
+        opacity: 0.8;
+    }
+
+    /* 模块网格布局 */
+    .module-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    /* 模块项目样式 */
+    .module-item {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .module-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        border-color: rgba(0, 0, 0, 0.1);
+    }
+
+    .module-icon {
+        width: 3.5rem;
+        height: 3.5rem;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        margin-bottom: 1rem;
+    }
+
+    .module-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+        color: #2c3e50;
+    }
+
+    /* 背景色类 */
+    .bg-primary-light { background: linear-gradient(135deg, #0061f2 0%, #6e00ff 100%); }
+    .bg-success-light { background: linear-gradient(135deg, #00b74a 0%, #00d68f 100%); }
+    .bg-info-light { background: linear-gradient(135deg, #00b8d9 0%, #00cfee 100%); }
+    .bg-warning-light { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); }
+    .bg-danger-light { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); }
+    .bg-purple-light { background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%); }
+
+    /* 动画效果 */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fadeInUp {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+
+    /* 响应式调整 */
+    @media (max-width: 768px) {
+        .app-container {
+            padding: 1rem;
+        }
+
+        .welcome-section {
+            padding: 1.5rem;
+        }
+
+        .welcome-heading {
+            font-size: 1.5rem;
+        }
+
+        .module-grid {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <!-- 欢迎部分 -->
+    <div class="welcome-section animate-fadeInUp">
+        <h1 class="welcome-heading">智证校园管理系统</h1>
+        <p class="welcome-date">基于深度学习的智能校园综合管理平台</p>
+    </div>
+
+    <!-- 教学管理 -->
+    <div class="module-section animate-fadeInUp delay-1">
+        <h3><i class="fas fa-chalkboard text-primary"></i>教学管理</h3>
+        <div class="module-grid">
+            <a href="#" class="module-item">
+                <div class="module-icon bg-primary-light">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <h5 class="module-title">班级管理</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-success-light">
+                    <i class="fas fa-book"></i>
+                </div>
+                <h5 class="module-title">课程管理</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-info-light">
+                    <i class="fas fa-pencil-alt"></i>
+                </div>
+                <h5 class="module-title">实习记录</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-warning-light">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <h5 class="module-title">资源分配</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-danger-light">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <h5 class="module-title">计划进度</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-purple-light">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h5 class="module-title">考勤管理</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-info-light">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <h5 class="module-title">成绩管理</h5>
+            </a>
+        </div>
+    </div>
+
+    <!-- 日常管理 -->
+    <div class="module-section animate-fadeInUp delay-2">
+        <h3><i class="fas fa-calendar-check text-success"></i>日常管理</h3>
+        <div class="module-grid">
+            <a href="#" class="module-item">
+                <div class="module-icon bg-primary-light">
+                    <i class="fas fa-building"></i>
+                </div>
+                <h5 class="module-title">场地管理</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-success-light">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <h5 class="module-title">教职工管理</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-info-light">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h5 class="module-title">学生管理</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-warning-light">
+                    <i class="fas fa-home"></i>
+                </div>
+                <h5 class="module-title">家长管理</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-danger-light">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <h5 class="module-title">消息管理</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-purple-light">
+                    <i class="fas fa-door-open"></i>
+                </div>
+                <h5 class="module-title">门禁管理</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-info-light">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h5 class="module-title">访客管理</h5>
+            </a>
+        </div>
+    </div>
+
+    <!-- 安全管控 -->
+    <div class="module-section animate-fadeInUp delay-3">
+        <h3><i class="fas fa-shield-alt text-danger"></i>安全管控</h3>
+        <div class="module-grid">
+            <a href="#" class="module-item">
+                <div class="module-icon bg-primary-light">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h5 class="module-title">事件检索</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-success-light">
+                    <i class="fas fa-video"></i>
+                </div>
+                <h5 class="module-title">视频监控</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-info-light">
+                    <i class="fas fa-door-closed"></i>
+                </div>
+                <h5 class="module-title">门禁管理</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-warning-light">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <h5 class="module-title">规则配置</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-danger-light">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <h5 class="module-title">权限场景</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-purple-light">
+                    <i class="fas fa-key"></i>
+                </div>
+                <h5 class="module-title">权限分配</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-info-light">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h5 class="module-title">考勤预警</h5>
+            </a>
+        </div>
+    </div>
+
+    <!-- 素养平台 -->
+    <div class="module-section animate-fadeInUp delay-4">
+        <h3><i class="fas fa-graduation-cap text-info"></i>素养平台</h3>
+        <div class="module-grid">
+            <a href="{{ url_for('admin.quality_dimension_dashboard') }}" class="module-item">
+                <div class="module-icon bg-primary-light">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h5 class="module-title">素养维度大屏</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-success-light">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <h5 class="module-title">素养画像</h5>
+            </a>
+            <a href="{{ url_for('admin.quality_reports') }}" class="module-item">
+                <div class="module-icon bg-info-light">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <h5 class="module-title">素养报告</h5>
+            </a>
+            <a href="{{ url_for('admin.quality_certificates') }}" class="module-item">
+                <div class="module-icon bg-warning-light">
+                    <i class="fas fa-award"></i>
+                </div>
+                <h5 class="module-title">素养证书</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-danger-light">
+                    <i class="fas fa-cogs"></i>
+                </div>
+                <h5 class="module-title">维度配置</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-purple-light">
+                    <i class="fas fa-database"></i>
+                </div>
+                <h5 class="module-title">数据维护</h5>
+            </a>
+            <a href="#" class="module-item">
+                <div class="module-icon bg-info-light">
+                    <i class="fas fa-sliders-h"></i>
+                </div>
+                <h5 class="module-title">模型配置</h5>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

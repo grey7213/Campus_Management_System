@@ -1,0 +1,317 @@
+{% extends 'student/student_layout.html' %}
+
+{% block title %}证书详情 - 智证融合{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="mb-3">
+        <h1 class="h3 d-inline align-middle">证书详情</h1>
+        <a href="{{ url_for('student.literacy_certificates') }}" class="btn btn-secondary float-end">
+            <i class="fas fa-arrow-left me-1"></i> 返回列表
+        </a>
+    </div>
+
+    <!-- 证书详情卡片 -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">{{ certificate.name }}</h5>
+            <div>
+                {% if certificate.status == 'pending' %}
+                    <span class="badge bg-warning">审核中</span>
+                {% elif certificate.status == 'approved' %}
+                    <span class="badge bg-success">已通过</span>
+                {% elif certificate.status == 'rejected' %}
+                    <span class="badge bg-danger">已拒绝</span>
+                {% endif %}
+                
+                {% if certificate.blockchain_enabled and certificate.blockchain_certificate_id %}
+                    <span class="badge bg-info ms-1">
+                        <i class="fas fa-link me-1"></i>区块链认证
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <!-- 证书基本信息 -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">基本信息</h5>
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 30%">证书类型</th>
+                                    <td>
+                                        {% if certificate.certificate_type == 'language' %}
+                                            语言能力
+                                        {% elif certificate.certificate_type == 'professional' %}
+                                            专业技能
+                                        {% elif certificate.certificate_type == 'competition' %}
+                                            竞赛获奖
+                                        {% elif certificate.certificate_type == 'skill' %}
+                                            技能认证
+                                        {% else %}
+                                            其他
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>颁发机构</th>
+                                    <td>{{ certificate.issuer }}</td>
+                                </tr>
+                                <tr>
+                                    <th>颁发日期</th>
+                                    <td>{{ certificate.issue_date.strftime('%Y-%m-%d') }}</td>
+                                </tr>
+                                <tr>
+                                    <th>证书编号</th>
+                                    <td>{{ certificate.certificate_no or '暂无' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>申请日期</th>
+                                    <td>{{ certificate.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                </tr>
+                                <tr>
+                                    <th>证书描述</th>
+                                    <td>{{ certificate.description or '暂无描述' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 区块链信息 -->
+                    {% if certificate.blockchain_enabled and certificate.blockchain_certificate_id %}
+                    <div class="mb-4">
+                        <h5 class="mb-3">区块链信息</h5>
+                        <div class="alert alert-info">
+                            <p class="mb-2">此证书已上传至区块链，具有不可篡改性和可验证性。</p>
+                            <a href="{{ certificate.blockchain_verification_url }}" class="btn btn-sm btn-primary" target="_blank">
+                                <i class="fas fa-external-link-alt me-1"></i> 验证证书
+                            </a>
+                        </div>
+                        <table class="table table-sm blockchain-info">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 30%">区块链ID</th>
+                                    <td>
+                                        <code class="text-break">{{ certificate.blockchain_certificate_id }}</code>
+                                        <button class="btn btn-sm btn-link p-0 ms-1" onclick="copyToClipboard('{{ certificate.blockchain_certificate_id }}')">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>交易哈希</th>
+                                    <td>
+                                        <code class="text-break">{{ certificate.blockchain_transaction_hash }}</code>
+                                        <button class="btn btn-sm btn-link p-0 ms-1" onclick="copyToClipboard('{{ certificate.blockchain_transaction_hash }}')">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>数据哈希</th>
+                                    <td>
+                                        <code class="text-break">{{ certificate.blockchain_data_hash }}</code>
+                                        <button class="btn btn-sm btn-link p-0 ms-1" onclick="copyToClipboard('{{ certificate.blockchain_data_hash }}')">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {% elif certificate.status == 'approved' %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle me-2"></i> 此证书已审核通过，但尚未上传区块链。
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-6">
+                    <!-- 证书图片 -->
+                    {% if certificate.image_url %}
+                    <div class="text-center mb-3">
+                        <div class="certificate-image-container">
+                            <img src="{{ url_for('static', filename=certificate.image_url) }}" 
+                                 alt="{{ certificate.name }}" 
+                                 class="img-fluid certificate-image">
+                        </div>
+                        <div class="mt-3">
+                            <a href="{{ url_for('static', filename=certificate.image_url) }}" 
+                               class="btn btn-sm btn-outline-primary" 
+                               target="_blank">
+                                <i class="fas fa-external-link-alt me-1"></i> 查看原图
+                            </a>
+                            <a href="{{ url_for('student.download_certificate', id=certificate.id) }}" 
+                               class="btn btn-sm btn-outline-success ms-2">
+                                <i class="fas fa-download me-1"></i> 下载证书
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-secondary text-center py-5">
+                        <i class="fas fa-image fa-3x mb-3 opacity-50"></i>
+                        <p>证书图片暂未生成</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- 证书验证二维码 -->
+                    {% if certificate.blockchain_verification_url %}
+                    <div class="card mt-4">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">证书验证二维码</h5>
+                            <p class="text-muted">扫描下方二维码可验证证书真伪</p>
+                            <div id="certificateQRCode" class="d-inline-block p-2 bg-white"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- 证书操作按钮 -->
+        <div class="card-footer">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    {% if certificate.status == 'rejected' %}
+                    <div class="alert alert-danger mb-0 py-2">
+                        <strong>拒绝原因：</strong> {{ certificate.rejected_reason or '未提供拒绝原因' }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div>
+                    {% if certificate.blockchain_enabled and certificate.blockchain_certificate_id %}
+                    <button class="btn btn-success" onclick="shareCertificate('{{ certificate.id }}')">
+                        <i class="fas fa-share-alt me-1"></i> 分享证书
+                    </button>
+                    {% endif %}
+                    
+                    {% if certificate.status == 'rejected' %}
+                    <a href="{{ url_for('student.reapply_certificate', id=certificate.id) }}" class="btn btn-primary">
+                        <i class="fas fa-redo me-1"></i> 重新申请
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 分享模态框 -->
+<div class="modal fade" id="shareCertificateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">分享证书</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group mb-3">
+                    <label>验证链接</label>
+                    <div class="input-group">
+                        <input type="text" id="shareLink" class="form-control" readonly>
+                        <button class="btn btn-outline-secondary" onclick="copyShareLink()">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="text-center mb-3" id="qrCodeContainer">
+                </div>
+                <div class="d-flex justify-content-center">
+                    <a href="#" id="socialShareWeChat" class="btn btn-outline-success mx-1">
+                        <i class="fab fa-weixin"></i> 微信
+                    </a>
+                    <a href="#" id="socialShareQQ" class="btn btn-outline-primary mx-1">
+                        <i class="fab fa-qq"></i> QQ
+                    </a>
+                    <a href="#" id="socialShareWeibo" class="btn btn-outline-danger mx-1">
+                        <i class="fab fa-weibo"></i> 微博
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/qrcode.js@1.0.0/qrcode.min.js"></script>
+<script>
+// 初始化证书二维码
+document.addEventListener('DOMContentLoaded', function() {
+    const verificationUrl = "{{ certificate.blockchain_verification_url|default('') }}";
+    const qrCodeElement = document.getElementById('certificateQRCode');
+    
+    if (verificationUrl && qrCodeElement) {
+        new QRCode(qrCodeElement, {
+            text: verificationUrl,
+            width: 150,
+            height: 150,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    }
+});
+
+// 复制文本到剪贴板
+function copyToClipboard(text) {
+    const el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    
+    // 显示复制成功提示
+    const button = event.target.closest('button');
+    const originalHtml = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i>';
+    setTimeout(() => {
+        button.innerHTML = originalHtml;
+    }, 2000);
+}
+
+// 分享证书
+function shareCertificate(certificateId) {
+    // 直接使用已有的链接
+    const shareLink = "{{ certificate.blockchain_verification_url }}";
+    document.getElementById('shareLink').value = shareLink;
+    
+    // 生成二维码
+    const qrContainer = document.getElementById('qrCodeContainer');
+    qrContainer.innerHTML = '';
+    new QRCode(qrContainer, {
+        text: shareLink,
+        width: 200,
+        height: 200,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+    });
+    
+    // 设置社交分享链接
+    document.getElementById('socialShareWeChat').setAttribute('data-url', shareLink);
+    document.getElementById('socialShareQQ').href = `https://connect.qq.com/widget/shareqq/index.html?url=${encodeURIComponent(shareLink)}`;
+    document.getElementById('socialShareWeibo').href = `https://service.weibo.com/share/share.php?url=${encodeURIComponent(shareLink)}`;
+    
+    // 显示模态框
+    new bootstrap.Modal(document.getElementById('shareCertificateModal')).show();
+}
+
+function copyShareLink() {
+    const copyText = document.getElementById("shareLink");
+    copyText.select();
+    document.execCommand("copy");
+    
+    // 显示复制成功提示
+    const button = event.target.closest('button');
+    const originalHtml = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i>';
+    setTimeout(() => {
+        button.innerHTML = originalHtml;
+    }, 2000);
+}
+</script>
+{% endblock %}

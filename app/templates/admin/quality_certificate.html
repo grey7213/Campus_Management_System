@@ -1,0 +1,299 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block title %}素养证书 - {{ super() }}{% endblock %}
+
+{% block css %}
+<style>
+    .stats-card {
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        color: white;
+        transition: transform 0.3s;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    .stats-card .number {
+        font-size: 2em;
+        font-weight: bold;
+    }
+    .stats-card .label {
+        opacity: 0.9;
+        font-size: 1.1em;
+    }
+    .stats-card .icon {
+        font-size: 2em;
+        opacity: 0.5;
+    }
+    .purple-gradient {
+        background: linear-gradient(135deg, #6f42c1 0%, #8b5cf6 100%);
+    }
+    .green-gradient {
+        background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+    }
+    .yellow-gradient {
+        background: linear-gradient(135deg, #ffc107 0%, #ffcd39 100%);
+    }
+    .red-gradient {
+        background: linear-gradient(135deg, #dc3545 0%, #ff4d5e 100%);
+    }
+    .search-section {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    .certificate-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+    }
+    .table td {
+        vertical-align: middle;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <!-- 统计卡片 -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stats-card purple-gradient">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="number">{{ total_count|default(0) }}</div>
+                        <div class="label">证书总数</div>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-certificate"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card green-gradient">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="number">{{ approved_count|default(0) }}</div>
+                        <div class="label">已通过</div>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card yellow-gradient">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="number">{{ pending_count|default(0) }}</div>
+                        <div class="label">审核中</div>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card red-gradient">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="number">{{ rejected_count|default(0) }}</div>
+                        <div class="label">已拒绝</div>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 搜索栏 -->
+    <div class="search-section">
+        <div class="row align-items-center">
+            <div class="col-md-3">
+                <input type="text" class="form-control" placeholder="搜索证书...">
+            </div>
+            <div class="col-md-2">
+                <select class="form-select">
+                    <option value="">所有类型</option>
+                    <option value="language">语言能力</option>
+                    <option value="professional">专业技能</option>
+                    <option value="competition">竞赛获奖</option>
+                    <option value="skill">技能认证</option>
+                    <option value="other">其他</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select">
+                    <option value="">所有状态</option>
+                    <option value="approved">已通过</option>
+                    <option value="pending">审核中</option>
+                    <option value="rejected">已拒绝</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-primary me-2">
+                    <i class="fas fa-search me-1"></i>筛选
+                </button>
+                <button class="btn btn-secondary">
+                    <i class="fas fa-redo me-1"></i>重置
+                </button>
+            </div>
+            <div class="col-md-2 text-end">
+                <a href="{{ url_for('admin.quality_dashboard') }}" class="btn btn-success">
+                    <i class="fas fa-plus me-1"></i>申请证书
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 证书列表 -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>证书名称</th>
+                    <th>持有人</th>
+                    <th>证书类型</th>
+                    <th>颁发机构</th>
+                    <th>颁发日期</th>
+                    <th>状态</th>
+                    <th>区块链</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                        {% for cert in certificates %}
+                        <tr>
+                            <td>{{ cert.id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="certificate-icon me-3">
+                                        {% if cert.certificate_type == 'language' %}
+                                            <i class="fas fa-language text-primary fa-lg"></i>
+                                        {% elif cert.certificate_type == 'professional' %}
+                                            <i class="fas fa-briefcase text-success fa-lg"></i>
+                                        {% elif cert.certificate_type == 'competition' %}
+                                            <i class="fas fa-trophy text-warning fa-lg"></i>
+                                        {% elif cert.certificate_type == 'skill' %}
+                                            <i class="fas fa-tools text-info fa-lg"></i>
+                                        {% else %}
+                                            <i class="fas fa-certificate text-secondary fa-lg"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ cert.name }}</h6>
+                                        <small class="text-muted">编号: {{ cert.certificate_no }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge rounded-pill bg-dark bg-opacity-10 text-dark">
+                                    <i class="fas fa-user me-1"></i> {{ cert.student_name }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge rounded-pill 
+                                    {% if cert.certificate_type == 'language' %}
+                                        bg-primary bg-opacity-10 text-primary
+                                    {% elif cert.certificate_type == 'professional' %}
+                                        bg-success bg-opacity-10 text-success
+                                    {% elif cert.certificate_type == 'competition' %}
+                                        bg-warning bg-opacity-10 text-warning
+                                    {% elif cert.certificate_type == 'skill' %}
+                                        bg-info bg-opacity-10 text-info
+                                    {% else %}
+                                        bg-secondary bg-opacity-10 text-secondary
+                                    {% endif %}">
+                                    {% if cert.certificate_type == 'language' %}
+                                        语言能力
+                                    {% elif cert.certificate_type == 'professional' %}
+                                        专业技能
+                                    {% elif cert.certificate_type == 'competition' %}
+                                        竞赛获奖
+                                    {% elif cert.certificate_type == 'skill' %}
+                                        技能认证
+                                    {% else %}
+                                        其他
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td>{{ cert.issuer }}</td>
+                            <td>{{ cert.issue_date.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                {% if cert.status == 'pending' %}
+                                    <span class="badge rounded-pill bg-warning">
+                                        <i class="fas fa-clock me-1"></i> 审核中
+                                    </span>
+                                {% elif cert.status == 'approved' %}
+                                    <span class="badge rounded-pill bg-success">
+                                        <i class="fas fa-check me-1"></i> 已通过
+                                    </span>
+                                {% elif cert.status == 'rejected' %}
+                                    <span class="badge rounded-pill bg-danger">
+                                        <i class="fas fa-times me-1"></i> 已拒绝
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if cert.blockchain_enabled %}
+                                    <span class="badge rounded-pill bg-info">
+                                        <i class="fas fa-link me-1"></i> 已上链
+                                    </span>
+                                {% else %}
+                                    <span class="badge rounded-pill bg-secondary">
+                                        <i class="fas fa-unlink me-1"></i> 未上链
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-light" title="查看">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    {% if cert.blockchain_enabled %}
+                                    <button class="btn btn-light text-info" title="验证">
+                                        <i class="fas fa-check-circle"></i>
+                                    </button>
+                                    <button class="btn btn-light text-success" title="分享">
+                                        <i class="fas fa-share-alt"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5">
+                                <div class="empty-state fade-in">
+                                    <div class="mb-3">
+                                        <div class="bg-light p-4 rounded-circle d-inline-flex align-items-center justify-content-center">
+                                            <i class="fas fa-certificate fa-3x text-muted"></i>
+                                        </div>
+                                    </div>
+                                    <h5 class="text-muted">暂无素养证书</h5>
+                                    <p class="text-muted">还没有任何素养证书记录</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+            </tbody>
+        </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

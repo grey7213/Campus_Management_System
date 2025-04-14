@@ -1,0 +1,139 @@
+{% extends 'student/student_layout.html' %}
+
+{% block title %}申请素养证书 - 智证融合{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="mb-3">
+        <h1 class="h3 d-inline align-middle">申请素养证书</h1>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">素养证书申请表</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.name.label }}</label>
+                                {{ form.name(class="form-control") }}
+                                {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.name.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.certificate_type.label }}</label>
+                                {{ form.certificate_type(class="form-select") }}
+                                {% if form.certificate_type.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.certificate_type.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.issue_date.label }}</label>
+                                {{ form.issue_date(class="form-control", type="date") }}
+                                {% if form.issue_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.issue_date.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ form.expiry_date.label }}</label>
+                                {{ form.expiry_date(class="form-control", type="date") }}
+                                {% if form.expiry_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.expiry_date.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.issuer.label }}</label>
+                            {{ form.issuer(class="form-control") }}
+                            {% if form.issuer.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.issuer.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.description.label }}</label>
+                            {{ form.description(class="form-control", rows=4) }}
+                            {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.description.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.proof_file.label }}</label>
+                            {{ form.proof_file(class="form-control") }}
+                            <small class="form-text text-muted">支持 jpg, jpeg, png, pdf 格式，最大5MB</small>
+                            {% if form.proof_file.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.proof_file.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="blockchain_consent" required>
+                                <label class="form-check-label" for="blockchain_consent">
+                                    我同意将我的证书信息上传至区块链，以确保其真实性和不可篡改性
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-info-circle fa-2x"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h5>区块链证书说明</h5>
+                                    <p>申请通过后，您的证书将被上传至区块链，生成唯一的证书ID和验证链接。这将确保您的证书不可篡改，并可被第三方验证真实性。</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-end">
+                            <a href="{{ url_for('student.literacy_certificates') }}" class="btn btn-secondary">取消</a>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

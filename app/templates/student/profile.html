@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}个人资料 - 校园管理系统{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">个人资料</h1>
+        <a href="#" class="btn btn-primary">
+            <i class="fas fa-edit"></i> 编辑资料
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">基本信息</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        {% if current_user.avatar_url %}
+                        <img src="{{ url_for('static', filename=current_user.avatar_url.replace('static/', '')) }}" 
+                             alt="用户头像" class="rounded-circle" width="150" height="150" style="object-fit: cover;">
+                        {% else %}
+                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto" 
+                             style="width: 150px; height: 150px; color: white; font-size: 64px;">
+                            {{ current_user.name[0] if current_user.name else current_user.username[0] }}
+                        </div>
+                        {% endif %}
+                        <h4 class="mt-3">{{ current_user.name }}</h4>
+                        <p class="text-muted">{{ current_user.username }}</p>
+                        <span class="badge badge-success">学生</span>
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#uploadAvatarModal">
+                                <i class="fas fa-camera me-1"></i> 更换头像
+                            </button>
+                        </div>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><i class="fas fa-envelope mr-2"></i>邮箱</span>
+                            <span>{{ current_user.email }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><i class="fas fa-phone mr-2"></i>电话</span>
+                            <span>{{ current_user.phone or '未设置' }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><i class="fas fa-clock mr-2"></i>注册时间</span>
+                            <span>{{ current_user.created_at.strftime('%Y-%m-%d') }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">学生信息</h5>
+                </div>
+                <div class="card-body">
+                    {% if student %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>学号:</strong> {{ student.student_id }}</p>
+                            <p><strong>姓名:</strong> {{ student.name }}</p>
+                            <p><strong>性别:</strong> {{ student.gender }}</p>
+                            <p><strong>出生日期:</strong> {{ student.birthday.strftime('%Y-%m-%d') if student.birthday else '未设置' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>班级:</strong> {{ student.class.name if student.class else '未分配' }}</p>
+                            <p><strong>专业:</strong> {{ student.class.major.name if student.class and student.class.major else '未分配' }}</p>
+                            <p><strong>学院:</strong> {{ student.class.major.department.name if student.class and student.class.major and student.class.major.department else '未分配' }}</p>
+                            <p><strong>状态:</strong> 
+                                {% if student.status == 'active' %}
+                                <span class="badge badge-success">在读</span>
+                                {% elif student.status == 'graduated' %}
+                                <span class="badge badge-info">已毕业</span>
+                                {% elif student.status == 'suspended' %}
+                                <span class="badge badge-warning">休学</span>
+                                {% else %}
+                                <span class="badge badge-secondary">{{ student.status }}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <p><strong>住址:</strong> {{ student.address or '未设置' }}</p>
+                            <p><strong>简介:</strong> {{ student.bio or '未设置' }}</p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle mr-2"></i> 您的学生信息不完整，请联系管理员补充信息。
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">学习进度</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <h2>{{ enrollments|default([])|length }}</h2>
+                            <p class="text-muted">已选课程</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <h2>{{ completed_courses|default(0) }}</h2>
+                            <p class="text-muted">已完成课程</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <h2>{{ total_credits|default(0) }}</h2>
+                            <p class="text-muted">已获学分</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 上传头像模态框 -->
+<div class="modal fade" id="uploadAvatarModal" tabindex="-1" aria-labelledby="uploadAvatarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadAvatarModalLabel">更换头像</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('auth.upload_avatar') }}" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <div class="mb-3">
+                        <label for="avatar" class="form-label">选择头像图片</label>
+                        <input type="file" class="form-control" id="avatar" name="avatar" accept="image/jpeg,image/png,image/gif">
+                        <div class="form-text">支持JPG、PNG或GIF格式，文件大小不超过2MB</div>
+                    </div>
+                    <div class="text-center">
+                        <img id="avatar-preview" class="img-fluid rounded-circle mt-3 mb-3" style="max-width: 200px; max-height: 200px; display: none;">
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">上传头像</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 图片预览功能
+        const avatarInput = document.getElementById('avatar');
+        const avatarPreview = document.getElementById('avatar-preview');
+        
+        if (avatarInput && avatarPreview) {
+            avatarInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        avatarPreview.style.display = 'block';
+                        avatarPreview.src = e.target.result;
+                    }
+                    
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,4 @@
+2025-04-01 12:53:45,280 - certificate_tasks - ERROR - No administrator found in the system to approve certificates
+2025-04-01 12:54:11,501 - certificate_tasks - WARNING - No administrator found in the system, using default admin ID=1
+2025-04-01 12:54:11,504 - certificate_tasks - INFO - Found 0 pending certificates to auto-approve
+2025-04-01 12:54:11,505 - certificate_tasks - INFO - Auto-approve certificates task completed

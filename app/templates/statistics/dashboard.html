@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block title %}数据统计 - 校园管理系统{% endblock %}
+
+{% block styles %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-chart-pie mr-2"></i>数据统计</h2>
+        <div>
+            <a href="{{ url_for('statistics.reports') }}" class="btn btn-primary">
+                <i class="fas fa-file-export mr-1"></i>导出报表
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">学生总数</h6>
+                            <h3 class="mb-0">{{ student_count }}</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-user-graduate fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">教师总数</h6>
+                            <h3 class="mb-0">{{ teacher_count }}</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-chalkboard-teacher fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">课程总数</h6>
+                            <h3 class="mb-0">{{ course_count }}</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-book fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">部门总数</h6>
+                            <h3 class="mb-0">{{ department_count }}</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-building fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">学生专业分布</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="majorChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">教师部门分布</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="departmentChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">学生性别比例</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="genderChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">课程学期分布</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="semesterChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 学生专业分布图表
+    var majorCtx = document.getElementById('majorChart').getContext('2d');
+    var majorChart = new Chart(majorCtx, {
+        type: 'bar',
+        data: {
+            labels: ['计算机科学', '电子工程', '机械工程', '土木工程', '经济管理', '外国语'],
+            datasets: [{
+                label: '学生人数',
+                data: [120, 80, 75, 60, 90, 70],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(255, 206, 86, 0.6)',
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(153, 102, 255, 0.6)',
+                    'rgba(255, 159, 64, 0.6)'
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    });
+
+    // 教师部门分布图表
+    var deptCtx = document.getElementById('departmentChart').getContext('2d');
+    var deptChart = new Chart(deptCtx, {
+        type: 'pie',
+        data: {
+            labels: ['计算机学院', '电子信息学院', '机械工程学院', '土木工程学院', '经济管理学院', '外国语学院'],
+            datasets: [{
+                data: [25, 20, 18, 15, 22, 16],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(255, 206, 86, 0.6)',
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(153, 102, 255, 0.6)',
+                    'rgba(255, 159, 64, 0.6)'
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            legend: {
+                position: 'right'
+            }
+        }
+    });
+
+    // 学生性别比例图表
+    var genderCtx = document.getElementById('genderChart').getContext('2d');
+    var genderChart = new Chart(genderCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['男', '女'],
+            datasets: [{
+                data: [280, 215],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 99, 132, 0.6)'
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 99, 132, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            legend: {
+                position: 'right'
+            }
+        }
+    });
+
+    // 课程学期分布图表
+    var semesterCtx = document.getElementById('semesterChart').getContext('2d');
+    var semesterChart = new Chart(semesterCtx, {
+        type: 'line',
+        data: {
+            labels: ['第一学期', '第二学期', '第三学期', '第四学期', '第五学期', '第六学期', '第七学期', '第八学期'],
+            datasets: [{
+                label: '开设课程数',
+                data: [15, 18, 20, 22, 19, 16, 12, 8],
+                fill: false,
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2,
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    });
+
+    // 添加图表交互性
+    document.querySelectorAll('.card-header').forEach(header => {
+        header.style.cursor = 'pointer';
+        header.addEventListener('click', function() {
+            const cardBody = this.nextElementSibling;
+            if (cardBody.style.display === 'none') {
+                cardBody.style.display = 'block';
+            } else {
+                cardBody.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

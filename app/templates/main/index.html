@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - 校园管理系统{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- 欢迎区域 -->
+    <div class="jumbotron">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4">欢迎使用校园管理系统</h1>
+                <p class="lead">这是一个功能完善的校园管理系统，提供人事管理、学生管理、课程管理等功能。</p>
+                <hr class="my-4">
+                <p>请选择以下功能模块进行操作，或者点击下方按钮了解更多。</p>
+                <a class="btn btn-primary btn-lg" href="#modules" role="button">
+                    <i class="fas fa-arrow-down me-2"></i>浏览功能
+                </a>
+            </div>
+            <div class="col-md-4 text-center">
+                <img src="{{ url_for('static', filename='images/welcome.svg') }}" alt="Welcome" class="img-fluid" style="max-width: 300px;">
+            </div>
+        </div>
+    </div>
+
+    <!-- 系统功能区域 -->
+    <div class="section-title">
+        <h2 id="modules" class="text-center">
+            <i class="fas fa-th-large me-2"></i>系统功能
+        </h2>
+        <p class="text-center">选择以下功能模块开始使用系统</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- 人事管理 -->
+        <div class="col-md-4">
+            <div class="card module-card h-100">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-primary-light mx-auto">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h5 class="module-title">人事管理</h5>
+                    <p class="card-text">教师信息管理、部门管理、职称管理等</p>
+                    <a href="{{ url_for('admin.teachers') if current_user.is_administrator() else url_for('auth.login') }}" 
+                       class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-right me-1"></i>进入
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 学生管理 -->
+        <div class="col-md-4">
+            <div class="card module-card h-100">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-success-light mx-auto">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <h5 class="module-title">学生管理</h5>
+                    <p class="card-text">学生信息管理、班级管理、专业管理等</p>
+                    <a href="{{ url_for('admin.students') if current_user.is_administrator() else url_for('auth.login') }}" 
+                       class="btn btn-outline-success">
+                        <i class="fas fa-arrow-right me-1"></i>进入
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 课程管理 -->
+        <div class="col-md-4">
+            <div class="card module-card h-100">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-info-light mx-auto">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <h5 class="module-title">课程管理</h5>
+                    <p class="card-text">课程信息管理、教学计划、课表管理等</p>
+                    <a href="{{ url_for('admin.courses') if current_user.is_administrator() else url_for('auth.login') }}" 
+                       class="btn btn-outline-info">
+                        <i class="fas fa-arrow-right me-1"></i>进入
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 考勤管理 -->
+        <div class="col-md-4">
+            <div class="card module-card h-100">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-warning-light mx-auto">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <h5 class="module-title">考勤管理</h5>
+                    <p class="card-text">学生考勤记录、统计分析等</p>
+                    <a href="{{ url_for('admin.attendance') if current_user.is_administrator() else url_for('auth.login') }}" 
+                       class="btn btn-outline-warning">
+                        <i class="fas fa-arrow-right me-1"></i>进入
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 成绩管理 -->
+        <div class="col-md-4">
+            <div class="card module-card h-100">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-danger-light mx-auto">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h5 class="module-title">成绩管理</h5>
+                    <p class="card-text">成绩录入、统计分析、成绩单生成等</p>
+                    <a href="{{ url_for('admin.grades') if current_user.is_administrator() else url_for('auth.login') }}" 
+                       class="btn btn-outline-danger">
+                        <i class="fas fa-arrow-right me-1"></i>进入
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 教学资源 -->
+        <div class="col-md-4">
+            <div class="card module-card h-100">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-purple-light mx-auto">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h5 class="module-title">教学资源</h5>
+                    <p class="card-text">教学资料、课件、教案等资源管理</p>
+                    <a href="{{ url_for('admin.resources') if current_user.is_administrator() else url_for('auth.login') }}" 
+                       class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-right me-1"></i>进入
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 系统管理 -->
+        <div class="col-md-4">
+            <div class="card module-card h-100">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-secondary-light mx-auto">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h5 class="module-title">系统管理</h5>
+                    <p class="card-text">用户管理、权限设置、系统配置等</p>
+                    <a href="{{ url_for('admin.system') if current_user.is_administrator() else url_for('auth.login') }}" 
+                       class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-right me-1"></i>进入
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 通知公告 -->
+        <div class="col-md-4">
+            <div class="card module-card h-100">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-info-light mx-auto">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <h5 class="module-title">通知公告</h5>
+                    <p class="card-text">发布和管理系统通知、公告信息</p>
+                    <a href="{{ url_for('admin.announcements') if current_user.is_administrator() else url_for('auth.login') }}" 
+                       class="btn btn-outline-info">
+                        <i class="fas fa-arrow-right me-1"></i>进入
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 数据统计 -->
+        <div class="col-md-4">
+            <div class="card module-card h-100">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-dark-light mx-auto">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h5 class="module-title">数据统计</h5>
+                    <p class="card-text">系统数据分析、统计报表生成</p>
+                    <a href="{{ url_for('admin.statistics') if current_user.is_administrator() else url_for('auth.login') }}" 
+                       class="btn btn-outline-dark">
+                        <i class="fas fa-arrow-right me-1"></i>进入
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部信息 -->
+    <div class="footer-info">
+        <p>
+            <i class="fas fa-info-circle"></i>
+            如需帮助，请联系系统管理员
+        </p>
+    </div>
+</div>
+{% endblock %}

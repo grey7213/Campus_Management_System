@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}关于我们 - 校园管理系统{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">关于校园管理系统</h1>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2 class="card-title">系统简介</h2>
+            <p class="card-text">
+                校园管理系统是一个综合性的教育管理平台，旨在为学校提供全方位的信息化管理解决方案。
+                该系统集成了学生管理、教师管理、课程管理、设备管理等多个功能模块，
+                帮助学校实现信息化、数字化管理，提高工作效率和管理水平。
+            </p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="card-title">主要功能</h3>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">人事管理：教师信息管理、部门管理、职称管理</li>
+                        <li class="list-group-item">学生管理：学生信息管理、班级管理、专业管理</li>
+                        <li class="list-group-item">课程管理：课程信息管理、选课管理、成绩管理</li>
+                        <li class="list-group-item">教学资源：教室管理、实验室管理、设备管理</li>
+                        <li class="list-group-item">系统管理：用户管理、权限管理、日志管理</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="card-title">系统特点</h3>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">功能全面：满足学校各方面管理需求</li>
+                        <li class="list-group-item">操作简便：界面友好，易于上手</li>
+                        <li class="list-group-item">安全可靠：采用先进的安全机制保护数据</li>
+                        <li class="list-group-item">响应迅速：系统性能优良，响应速度快</li>
+                        <li class="list-group-item">可扩展性：模块化设计，便于扩展</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-center mt-4">
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary">返回首页</a>
+    </div>
+</div>
+{% endblock %} 

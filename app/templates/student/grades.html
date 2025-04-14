@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}成绩查询 - 校园管理系统{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">成绩查询</h1>
+    </div>
+
+    {% if enrollments %}
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">课程成绩列表</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th>课程代码</th>
+                        <th>课程名称</th>
+                        <th>学分</th>
+                        <th>授课教师</th>
+                        <th>学期</th>
+                        <th>成绩</th>
+                        <th>评语</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for enrollment in enrollments %}
+                    <tr>
+                        <td>{{ enrollment.course.code }}</td>
+                        <td>{{ enrollment.course.name }}</td>
+                        <td>{{ enrollment.course.credits }}</td>
+                        <td>{% if enrollment.course.teacher %}{{ enrollment.course.teacher.name }}{% else %}未指定{% endif %}</td>
+                        <td>{{ enrollment.course.semester }}</td>
+                        <td>
+                            {% if enrollment.grade %}
+                                {% if enrollment.grade >= 90 %}
+                                <span class="badge badge-success">{{ enrollment.grade }}</span>
+                                {% elif enrollment.grade >= 80 %}
+                                <span class="badge badge-primary">{{ enrollment.grade }}</span>
+                                {% elif enrollment.grade >= 70 %}
+                                <span class="badge badge-info">{{ enrollment.grade }}</span>
+                                {% elif enrollment.grade >= 60 %}
+                                <span class="badge badge-warning">{{ enrollment.grade }}</span>
+                                {% else %}
+                                <span class="badge badge-danger">{{ enrollment.grade }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge badge-secondary">未评分</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ enrollment.comments or '无' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">成绩统计</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">课程总数</h6>
+                            <h3 class="mb-0">{{ enrollments|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">总学分</h6>
+                            <h3 class="mb-0">{{ enrollments|sum(attribute='course.credits') }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">平均成绩</h6>
+                            {% set graded_enrollments = enrollments|selectattr('grade', 'defined')|selectattr('grade', 'ne', None)|list %}
+                            {% if graded_enrollments %}
+                                {% set avg_grade = (graded_enrollments|sum(attribute='grade') / graded_enrollments|length)|round(2) %}
+                                <h3 class="mb-0">{{ avg_grade }}</h3>
+                            {% else %}
+                                <h3 class="mb-0">-</h3>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">通过率</h6>
+                            {% set graded_enrollments = enrollments|selectattr('grade', 'defined')|selectattr('grade', 'ne', None)|list %}
+                            {% if graded_enrollments %}
+                                {% set passed_enrollments = graded_enrollments|selectattr('grade', 'ge', 60)|list %}
+                                {% set pass_rate = (passed_enrollments|length / graded_enrollments|length * 100)|round %}
+                                <h3 class="mb-0">{{ pass_rate }}%</h3>
+                            {% else %}
+                                <h3 class="mb-0">-</h3>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle mr-2"></i> 您还没有任何课程成绩。
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

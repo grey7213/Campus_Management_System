@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}学生详情 - 校园管理系统{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between mb-4">
+        <h2 class="mb-0"><i class="fas fa-user-graduate me-2"></i>学生详情</h2>
+        <div>
+            <a href="{{ url_for('admin.edit_student', id=student.id) }}" class="btn btn-primary me-2">
+                <i class="fas fa-edit me-1"></i>编辑信息
+            </a>
+            <a href="{{ url_for('admin.students') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>返回列表
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- 基本信息 -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">基本信息</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="avatar-circle mx-auto mb-3">
+                            <span class="initials">{{ student.name[0] }}</span>
+                        </div>
+                        <h4>{{ student.name }}</h4>
+                        <span class="badge bg-{{ 'success' if student.status == 'active' else 'warning' if student.status == 'suspended' else 'secondary' }}">
+                            {{ {'active': '在读', 'suspended': '休学', 'graduated': '毕业', 'transferred': '转校'}.get(student.status, student.status) }}
+                        </span>
+                    </div>
+
+                    <div class="student-info">
+                        <p><strong>学号：</strong>{{ student.student_id }}</p>
+                        <p><strong>性别：</strong>{{ {'male': '男', 'female': '女', 'other': '其他'}.get(student.gender, student.gender) }}</p>
+                        <p><strong>生日：</strong>{{ student.birthday.strftime('%Y-%m-%d') if student.birthday else '未设置' }}</p>
+                        <p><strong>班级：</strong>{{ student.class.name if student.class else '未分配' }}</p>
+                        <p><strong>专业：</strong>{{ student.class.major.name if student.class and student.class.major else '未分配' }}</p>
+                        <p><strong>学院：</strong>{{ student.class.major.department.name if student.class and student.class.major and student.class.major.department else '未分配' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 联系方式 -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">联系方式</h5>
+                </div>
+                <div class="card-body">
+                    <div class="student-info">
+                        <p><strong>电子邮箱：</strong>{{ student.user.email if student.user else '未设置' }}</p>
+                        <p><strong>电话号码：</strong>{{ student.phone or '未设置' }}</p>
+                        <p><strong>地址：</strong>{{ student.address or '未设置' }}</p>
+                    </div>
+
+                    <hr>
+
+                    <h6 class="mb-3">账号信息</h6>
+                    <div class="student-info">
+                        <p><strong>用户名：</strong>{{ student.user.username if student.user else '未关联账号' }}</p>
+                        <p><strong>账号状态：</strong>
+                            <span class="badge bg-{{ 'success' if student.user and student.user.is_active else 'danger' }}">
+                                {{ '激活' if student.user and student.user.is_active else '禁用' }}
+                            </span>
+                        </p>
+                        <p><strong>账号创建：</strong>{{ student.user.created_at.strftime('%Y-%m-%d') if student.user and student.user.created_at else '未知' }}</p>
+                        <p><strong>最后登录：</strong>{{ student.user.last_login.strftime('%Y-%m-%d %H:%M') if student.user and student.user.last_login else '从未登录' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 学术信息 -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">学术信息</h5>
+                </div>
+                <div class="card-body">
+                    <div class="academic-stats mb-4">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="p-3 border rounded-3 mb-2">
+                                    <h3 class="mb-0">{{ completed_courses }}</h3>
+                                </div>
+                                <p class="mb-0">已完成课程</p>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 border rounded-3 mb-2">
+                                    <h3 class="mb-0">{{ total_credits }}</h3>
+                                </div>
+                                <p class="mb-0">已获学分</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="mb-3">个人简介</h6>
+                    <div class="student-bio p-3 bg-light rounded-3">
+                        {{ student.bio or '该学生暂无个人简介' }}
+                    </div>
+
+                    <hr>
+
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-clipboard-list me-1"></i> 查看成绩单
+                        </a>
+                        <a href="#" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-graduation-cap me-1"></i> 查看选课记录
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 选课记录 -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">选课记录</h5>
+            <a href="#" class="btn btn-sm btn-primary">
+                <i class="fas fa-plus me-1"></i>为学生添加课程
+            </a>
+        </div>
+        <div class="card-body">
+            {% if enrollments %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>课程代码</th>
+                                <th>课程名称</th>
+                                <th>学分</th>
+                                <th>授课教师</th>
+                                <th>学期</th>
+                                <th>选课状态</th>
+                                <th>成绩</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for enrollment in enrollments %}
+                                <tr>
+                                    <td>{{ enrollment.course.code }}</td>
+                                    <td>{{ enrollment.course.name }}</td>
+                                    <td>{{ enrollment.course.credits }}</td>
+                                    <td>{{ enrollment.course.teacher.name if enrollment.course.teacher else '待定' }}</td>
+                                    <td>{{ enrollment.course.semester }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'primary' if enrollment.status == 'enrolled' else 'warning' if enrollment.status == 'pending' else 'success' if enrollment.status == 'completed' else 'danger' }}">
+                                            {{ {'enrolled': '已选', 'pending': '待审核', 'completed': '已完成', 'dropped': '已退选'}.get(enrollment.status, enrollment.status) }}
+                                        </span>
+                                    </td>
+                                    <td>{{ enrollment.grade or '-' }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="#" class="btn btn-outline-primary">编辑</a>
+                                            <a href="#" class="btn btn-outline-danger">退选</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    该学生暂未选修任何课程
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-circle {
+    width: 80px;
+    height: 80px;
+    background-color: #0d6efd;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.initials {
+    font-size: 40px;
+    color: white;
+    font-weight: bold;
+}
+
+.student-info p {
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.student-info p strong {
+    margin-right: 10px;
+}
+</style>
+{% endblock %} 

@@ -1,0 +1,2017 @@
+{% extends 'admin/admin_layout.html' %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
+
+{% block title %}素养报告 - {{ settings.get('site_name', '校园综合管理平台') }}{% endblock %}
+
+{% block css %}
+{{ super() }}
+<style data-version="1.1">
+    /* 全局样式优化 */
+    body {
+        background-color: #f8f9fa !important;
+    }
+    
+    .container-fluid {
+        max-width: 1800px;
+        margin: 0 auto;
+    }
+    
+    /* 页面标题美化 */
+    .page-header {
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        padding-bottom: 1.5rem;
+        animation: fadeInDown 0.8s ease-out;
+    }
+    
+    .page-header h2 {
+        font-weight: 600;
+        color: #3a3a3a;
+        display: flex;
+        align-items: center;
+    }
+    
+    .page-header h2 i {
+        background: linear-gradient(135deg, #6f42c1, #007bff);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-right: 0.75rem;
+        font-size: 1.5rem;
+    }
+    
+    /* 美化统计卡片 */
+    .stats-card {
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06) !important;
+        overflow: hidden !important;
+        position: relative !important;
+        border: none !important;
+        opacity: 0; /* 初始隐藏，用于动画 */
+        transform: translateY(20px); /* 初始位置，用于动画 */
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-8px) !important;
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+    }
+    
+    .stats-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 100%;
+        background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+        pointer-events: none;
+    }
+    
+    .stats-card .card-body {
+        padding: 1.75rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .stats-card h6 {
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+        opacity: 0.9;
+    }
+    
+    .stats-card h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0;
+    }
+    
+    .stats-card .opacity-50 {
+        opacity: 0.2;
+        font-size: 3.5rem;
+        position: absolute;
+        right: 1.5rem;
+        bottom: -0.5rem;
+        transform: rotate(-5deg);
+        transition: all 0.3s ease;
+    }
+    
+    .stats-card:hover .opacity-50 {
+        opacity: 0.3;
+        transform: rotate(0deg) scale(1.1);
+    }
+    
+    /* 卡片渐变背景 */
+    .bg-primary {
+        background: linear-gradient(135deg, #6f42c1, #5e37a6) !important;
+    }
+    
+    .bg-success {
+        background: linear-gradient(135deg, #28a745, #208738) !important;
+    }
+    
+    .bg-info {
+        background: linear-gradient(135deg, #17a2b8, #117a8b) !important;
+    }
+    
+    .bg-warning {
+        background: linear-gradient(135deg, #ffc107, #d39e00) !important;
+    }
+    
+    /* 仪表盘标题样式 */
+    .dashboard-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 20px;
+        background-color: rgba(13, 37, 76, 0.9);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px 16px 0 0;
+        animation: fadeInUp 0.8s ease-out;
+    }
+    
+    .dashboard-title h5 {
+        margin-bottom: 0;
+        font-weight: 600;
+        color: white;
+        display: flex;
+        align-items: center;
+    }
+    
+    .dashboard-title h5 i {
+        color: #00c6ff;
+        margin-right: 0.75rem;
+    }
+    
+    /* 大屏样式 - 改进自适应效果 */
+    .dashboard-container {
+        background: #061a3a;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        margin-bottom: 30px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0,123,255,0.2);
+        animation: fadeInUp 1s ease-out;
+        color: white;
+        position: relative;
+    }
+    
+    .dashboard-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #1e88e5, #00c6ff);
+        z-index: 1;
+    }
+    
+    .dashboard-content {
+        width: 100%;
+        position: relative;
+        min-height: 400px;
+        background-color: #061a3a;
+        transition: all 0.3s ease;
+    }
+    
+    /* 按钮样式 */
+    .dashboard-btn {
+        padding: 15px 30px;
+        font-size: 18px;
+        font-weight: 600;
+        border-radius: 50px;
+        background: linear-gradient(135deg, #1e88e5, #00c6ff);
+        border: none;
+        box-shadow: 0 10px 20px rgba(0, 198, 255, 0.3);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .dashboard-btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 198, 255, 0.4);
+    }
+    
+    .dashboard-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 5px 15px rgba(0, 198, 255, 0.3);
+    }
+    
+    .dashboard-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.3), rgba(255,255,255,0));
+        transform: skewX(-30deg);
+        transition: all 0.8s ease;
+    }
+    
+    .dashboard-btn:hover::before {
+        left: 100%;
+    }
+    
+    .dashboard-info {
+        max-width: 600px;
+        padding: 20px;
+    }
+    
+    .text-light-50 {
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    /* 状态指示器样式调整 */
+    .dashboard-status {
+        position: absolute;
+        right: 20px;
+        bottom: 20px;
+        background: rgba(0, 0, 0, 0.4);
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        z-index: 10;
+        backdrop-filter: blur(5px);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .dashboard-status .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #00c6ff;
+        margin-right: 8px;
+        position: relative;
+    }
+    
+    .dashboard-status .status-dot::after {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: rgba(0, 198, 255, 0.4);
+        border-radius: 50%;
+        animation: pulse 1.5s infinite;
+    }
+    
+    /* 表格美化 */
+    .table {
+        margin-bottom: 0;
+    }
+    
+    .table thead th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.7px;
+        color: #6c757d;
+        border-top: none;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        padding: 1rem 1.5rem;
+        background-color: #f8f9fa;
+    }
+    
+    .table tbody td {
+        padding: 1rem 1.5rem;
+        vertical-align: middle;
+        border-color: rgba(0,0,0,0.03);
+    }
+    
+    .table-hover tbody tr {
+        transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: rgba(121, 82, 179, 0.03);
+        transform: translateX(5px);
+    }
+    
+    /* 按钮美化 */
+    .btn {
+        border-radius: 10px;
+        font-weight: 500;
+        padding: 0.5rem 1.25rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        border: none;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    
+    .btn:active {
+        transform: translateY(1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #7952b3, #6f42c1);
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #6f42c1, #613bb1);
+    }
+    
+    .btn-info {
+        background: linear-gradient(135deg, #17a2b8, #138496);
+    }
+    
+    .btn-info:hover {
+        background: linear-gradient(135deg, #138496, #0f6674);
+    }
+    
+    .btn-group .btn {
+        border-radius: 8px;
+        margin: 0 2px;
+    }
+    
+    /* 卡片美化 */
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        overflow: hidden;
+        background-color: #fff;
+        transition: all 0.3s ease;
+        margin-bottom: 30px;
+        border: 1px solid rgba(0,0,0,0.03);
+        animation: fadeInUp 1s ease-out;
+    }
+    
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        background-color: #fff;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        font-weight: 600;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .card-footer {
+        background-color: #fff;
+        border-top: 1px solid rgba(0,0,0,0.05);
+        padding: 1rem 1.5rem;
+    }
+    
+    /* 徽章美化 */
+    .badge {
+        font-weight: 500;
+        padding: 0.5em 0.9em;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        font-size: 0.75rem;
+    }
+    
+    /* 分页美化 */
+    .pagination {
+        margin-bottom: 0;
+    }
+    
+    .pagination .page-link {
+        border-radius: 8px;
+        margin: 0 3px;
+        border: none;
+        color: #6c757d;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        padding: 0.5rem 0.75rem;
+        transition: all 0.2s ease;
+    }
+    
+    .pagination .page-link:hover {
+        background-color: #f0f0f0;
+        transform: translateY(-2px);
+        box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    }
+    
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #7952b3, #6f42c1);
+        color: white;
+    }
+    
+    .pagination .page-item.disabled .page-link {
+        opacity: 0.5;
+    }
+    
+    /* 雷达图卡片 */
+    .radar-card {
+        position: relative;
+        margin-bottom: 30px;
+        animation: fadeInUp 1.2s ease-out;
+    }
+    
+    .radar-card .card-header h5 {
+        display: flex;
+        align-items: center;
+    }
+    
+    .radar-card .card-header h5 i {
+        color: #7952b3;
+        margin-right: 0.75rem;
+    }
+    
+    /* 列表美化 */
+    .list-group-item {
+        border: none;
+        padding: 0.75rem 0;
+        transition: all 0.2s ease;
+    }
+    
+    .list-group-item:hover {
+        transform: translateX(5px);
+    }
+    
+    .list-group-item .badge {
+        margin-right: 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .list-group-item:hover .badge {
+        transform: scale(1.1);
+    }
+    
+    /* 评价卡片 */
+    .evaluation-card {
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.25rem;
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .evaluation-card:hover {
+        background-color: #f0f0f0;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    }
+    
+    .evaluation-card h6 {
+        display: flex;
+        align-items: center;
+        color: #495057;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    
+    .evaluation-card h6 i {
+        color: #ffc107;
+        margin-right: 0.75rem;
+    }
+    
+    .evaluation-card p {
+        color: #6c757d;
+        line-height: 1.6;
+    }
+
+    /* 动画效果 */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    /* 自适应移动设备 */
+    @media (max-width: 768px) {
+        .dashboard-content {
+            min-height: 500px; /* 增加移动设备最小高度 */
+            height: 80vh; /* 增加相对视口高度 */
+        }
+        
+        .stats-card h2 {
+            font-size: 1.75rem;
+        }
+        
+        .stats-card .opacity-50 {
+            font-size: 2.5rem;
+        }
+        
+        .card-header, .card-body, .card-footer {
+            padding: 1rem;
+        }
+        
+        .table thead th, .table tbody td {
+            padding: 0.75rem;
+        }
+        
+        .dashboard-controls {
+            gap: 5px;
+        }
+        
+        .dashboard-controls .btn {
+            width: 32px;
+            height: 32px;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .page-header > div {
+            margin-top: 1rem;
+            align-self: flex-start;
+        }
+        
+        .stats-card h2 {
+            font-size: 1.5rem;
+        }
+    }
+    
+    /* 修改移动视图容器样式 */
+    .mobile-frame {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .mobile-frame iframe {
+        border: none;
+        width: 100%;
+        min-height: 800px;
+        background: #fff;
+        display: block;
+    }
+    
+    /* 移动视图完全铺满优化 */
+    #mobile-view {
+        width: 100%;
+        padding: 20px;
+        background: #f8f9fa;
+    }
+    
+    #mobile-view .row {
+        margin: 0 -10px;
+        width: calc(100% + 20px);
+    }
+    
+    #mobile-view .col-md-12 {
+        padding: 0 10px;
+    }
+    
+    /* 移动视图卡片内容区域优化 */
+    #mobile-view .card {
+        margin-bottom: 20px;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    #mobile-view .card-header {
+        background: #fff;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        padding: 15px 20px;
+        border-radius: 16px 16px 0 0;
+    }
+    
+    #mobile-view .card-body {
+        padding: 20px;
+    }
+    
+    /* 表格样式优化 */
+    #mobile-view .table {
+        margin: 0;
+    }
+    
+    #mobile-view .table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        padding: 12px 15px;
+        border-bottom: 2px solid rgba(0,0,0,0.05);
+    }
+    
+    #mobile-view .table td {
+        padding: 15px;
+        vertical-align: middle;
+    }
+    
+    /* 按钮样式优化 */
+    #mobile-view .btn-view {
+        padding: 8px 16px;
+        font-size: 14px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    #mobile-view .btn-view:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(111, 66, 193, 0.2);
+    }
+    
+    /* 搜索框样式优化 */
+    #mobile-view .search-box {
+        margin-bottom: 0;
+    }
+    
+    #mobile-view .search-box .input-group {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    #mobile-view .search-box .form-control {
+        border: 1px solid rgba(0,0,0,0.05);
+        padding: 12px 20px;
+        font-size: 15px;
+    }
+    
+    #mobile-view .search-box .btn {
+        padding: 12px 24px;
+        font-size: 15px;
+    }
+    
+    /* 状态标签样式优化 */
+    #mobile-view .badge {
+        padding: 8px 12px;
+        font-size: 13px;
+        font-weight: 500;
+        border-radius: 8px;
+    }
+    
+    /* 学生头像样式优化 */
+    #mobile-view .student-avatar {
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+        box-shadow: 0 4px 12px rgba(111, 66, 193, 0.15);
+    }
+    
+    /* 分页样式优化 */
+    #mobile-view .pagination {
+        margin: 0;
+    }
+    
+    #mobile-view .pagination .page-link {
+        padding: 10px 16px;
+        font-size: 14px;
+        border-radius: 8px;
+        margin: 0 3px;
+    }
+    
+    /* 响应式优化 */
+    @media (max-width: 992px) {
+        #mobile-view {
+            padding: 15px;
+        }
+        
+        .mobile-frame {
+            max-width: 100%;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        #mobile-view {
+            padding: 10px;
+        }
+        
+        #mobile-view .card-header {
+            padding: 12px 15px;
+        }
+        
+        #mobile-view .card-body {
+            padding: 15px;
+        }
+        
+        #mobile-view .table td,
+        #mobile-view .table th {
+            padding: 12px;
+        }
+    }
+    
+    /* 动画效果 */
+    #mobile-view .card {
+        animation: slideUp 0.5s ease-out;
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* 学生列表页面样式 */
+    :root {
+        --primary-color: #6f42c1;
+        --primary-hover: #5e37a6;
+        --lighter-bg: #f8f9fa;
+        --card-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+        --transition: all 0.3s ease;
+    }
+    
+    .stats-row {
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        border-radius: 0.5rem;
+        box-shadow: var(--card-shadow);
+        padding: 1.5rem;
+        transition: var(--transition);
+        height: 100%;
+        background-color: white;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-card .icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        margin-right: 1rem;
+    }
+    
+    .stat-card .bg-purple {
+        background-color: var(--primary-color);
+    }
+    
+    .stat-card .bg-blue {
+        background-color: #007bff;
+    }
+    
+    .stat-card .bg-green {
+        background-color: #28a745;
+    }
+    
+    .stat-card .bg-orange {
+        background-color: #fd7e14;
+    }
+    
+    .stat-card h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-card p {
+        margin-bottom: 0;
+        color: #6c757d;
+    }
+    
+    .student-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        margin-right: 0.75rem;
+        background-color: var(--primary-color);
+    }
+    
+    .student-name {
+        display: flex;
+        align-items: center;
+    }
+    
+    .badge {
+        padding: 0.5em 0.75em;
+        font-weight: 500;
+        border-radius: 0.25rem;
+    }
+    
+    .badge-success {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .badge-warning {
+        background-color: #ffc107;
+        color: #212529;
+    }
+    
+    .badge-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+    
+    .status-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+    }
+    
+    .status-dot.success {
+        background-color: #28a745;
+        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
+    }
+    
+    .status-dot.warning {
+        background-color: #ffc107;
+        box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+    }
+    
+    .status-dot.pending {
+        background-color: #6c757d;
+        box-shadow: 0 0 0 3px rgba(108, 117, 125, 0.2);
+    }
+    
+    .date {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+    
+    .btn-view {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 0.25rem;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        transition: var(--transition);
+    }
+    
+    .btn-view:hover {
+        background-color: var(--primary-hover);
+        transform: translateY(-2px);
+    }
+    
+    /* 响应式调整 */
+    @media (max-width: 768px) {
+        .hide-md {
+            display: none;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .hide-sm {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center page-header">
+        <h2 class="mb-0">
+            <i class="fas fa-file-alt me-2 text-primary"></i> 素养报告
+        </h2>
+        <div>
+            <a href="http://192.168.66.31:8001/page/login.html" target="_blank" class="btn btn-success me-2">
+                <i class="fas fa-shield-alt me-1"></i> 校园安防移动端
+            </a>
+            <a href="#" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> 生成报告
+            </a>
+        </div>
+    </div>
+
+    <!-- 添加选项卡导航 -->
+    <ul class="nav nav-tabs mb-4" id="reportTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="standard-tab" data-bs-toggle="tab" data-bs-target="#standard-view" type="button" role="tab" aria-controls="standard-view" aria-selected="true">
+                <i class="fas fa-list me-1"></i> 报告列表
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="mobile-tab" data-bs-toggle="tab" data-bs-target="#mobile-view" type="button" role="tab" aria-controls="mobile-view" aria-selected="false">
+                <i class="fas fa-users me-1"></i> 学生列表
+            </button>
+        </li>
+    </ul>
+    
+    <!-- 选项卡内容 -->
+    <div class="tab-content" id="reportTabsContent">
+        <!-- 标准视图 -->
+        <div class="tab-pane fade show active" id="standard-view" role="tabpanel" aria-labelledby="standard-tab">
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4 stats-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">报告总数</h6>
+                            <h2 class="mb-0">348</h2>
+                        </div>
+                        <i class="fas fa-file-alt opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4 stats-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">综合素养</h6>
+                            <h2 class="mb-0">156</h2>
+                        </div>
+                        <i class="fas fa-chart-pie opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-info text-white mb-4 stats-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">专业能力</h6>
+                            <h2 class="mb-0">124</h2>
+                        </div>
+                        <i class="fas fa-graduation-cap opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4 stats-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">社会实践</h6>
+                            <h2 class="mb-0">68</h2>
+                        </div>
+                        <i class="fas fa-users opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 素养维度大屏 -->
+    <div class="dashboard-container" id="dashboard-container">
+        <div class="dashboard-title">
+            <h5><i class="fas fa-chart-line"></i> 素养维度大屏</h5>
+        </div>
+        <div class="dashboard-content text-center d-flex flex-column justify-content-center align-items-center" id="dashboard-content">
+            <div class="dashboard-info">
+                <h3 class="text-light mb-4" style="font-size: 2.5rem; font-weight: 700; text-shadow: 0 2px 10px rgba(0,0,0,0.3); background: linear-gradient(135deg, #00c6ff, #1e88e5); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">学生素养维度分析平台</h3>
+                <p class="text-light-50 mb-5">点击下方按钮访问完整的素养维度可视化大屏</p>
+                
+                <a href="http://192.168.151.7:50401/dv/7b198d1b3195e481830b/" target="_blank" class="btn btn-primary btn-lg dashboard-btn">
+                    <i class="fas fa-external-link-alt me-2"></i> 打开素养维度大屏
+                </a>
+                
+                <p class="text-light-50 mt-4">
+                    <i class="fas fa-info-circle me-2"></i> 大屏将在新窗口打开，提供更好的全屏体验
+                </p>
+            </div>
+            <div class="dashboard-status">
+                <div class="status-dot"></div>
+                <span>实时数据更新中</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <form action="{{ url_for('system.literacy_reports') }}" method="GET" class="d-flex flex-wrap gap-2 align-items-center">
+                        <div class="input-group" style="width: auto;">
+                            <input type="text" name="search" class="form-control" placeholder="搜索报告..." value="{{ request.args.get('search', '') }}">
+                            <button class="btn btn-outline-secondary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+
+                        <select name="type" class="form-select" style="width: auto;">
+                            <option value="">所有类型</option>
+                            <option value="comprehensive" {% if request.args.get('type') == 'comprehensive' %}selected{% endif %}>综合素养评估</option>
+                            <option value="professional" {% if request.args.get('type') == 'professional' %}selected{% endif %}>专业能力评估</option>
+                            <option value="social" {% if request.args.get('type') == 'social' %}selected{% endif %}>社会实践评估</option>
+                            <option value="innovation" {% if request.args.get('type') == 'innovation' %}selected{% endif %}>创新能力评估</option>
+                            <option value="other" {% if request.args.get('type') == 'other' %}selected{% endif %}>其他评估</option>
+                        </select>
+
+                        <button type="submit" class="btn btn-primary">筛选</button>
+                        <a href="{{ url_for('system.literacy_reports') }}" class="btn btn-outline-secondary">重置</a>
+                    </form>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="#" class="btn btn-info">
+                        <i class="fas fa-file-export me-1"></i> 导出
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>报告标题</th>
+                        <th>类型</th>
+                        <th>创建日期</th>
+                        <th>用户</th>
+                        <th>创建人</th>
+                        <th width="120">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if reports %}
+                        {% for report in reports %}
+                        <tr>
+                            <td>{{ report.id }}</td>
+                            <td>{{ report.title }}</td>
+                            <td>
+                                {% if report.report_type == 'comprehensive' %}
+                                    <span class="badge bg-success">综合素养</span>
+                                {% elif report.report_type == 'professional' %}
+                                    <span class="badge bg-info">专业能力</span>
+                                {% elif report.report_type == 'social' %}
+                                    <span class="badge bg-warning">社会实践</span>
+                                {% elif report.report_type == 'innovation' %}
+                                    <span class="badge bg-primary">创新能力</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">其他</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ report.report_date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ report.user.name or report.user.username }}</td>
+                            <td>{{ report.creator.name or report.creator.username if report.creator else '系统生成' }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('system.view_report', id=report.id) }}" class="btn btn-outline-primary" title="查看">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if current_user.id == report.user_id or current_user.is_administrator() %}
+                                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ report.id }}" title="删除">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- 删除确认模态框 -->
+                                <div class="modal fade" id="deleteModal{{ report.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ report.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="deleteModalLabel{{ report.id }}">确认删除</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                确定要删除报告 "{{ report.title }}" 吗？此操作不可撤销。
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                                <form action="#" method="POST" style="display: inline;">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <button type="submit" class="btn btn-danger">确认删除</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <!-- 添加示例数据 -->
+                        <tr>
+                            <td>2024001</td>
+                            <td>杜聪的综合素养评估报告</td>
+                            <td><span class="badge bg-success">综合素养</span></td>
+                            <td>2024-03-15</td>
+                            <td>杜聪</td>
+                            <td>系统生成</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="#" class="btn btn-outline-primary" title="查看">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" title="删除">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2024002</td>
+                            <td>蔡瑶的专业能力评估报告</td>
+                            <td><span class="badge bg-info">专业能力</span></td>
+                            <td>2024-03-14</td>
+                            <td>蔡瑶</td>
+                            <td>系统生成</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="#" class="btn btn-outline-primary" title="查看">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" title="删除">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2024003</td>
+                            <td>雷宇宁的社会实践评估报告</td>
+                            <td><span class="badge bg-warning">社会实践</span></td>
+                            <td>2024-03-14</td>
+                            <td>雷宇宁</td>
+                            <td>系统生成</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="#" class="btn btn-outline-primary" title="查看">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" title="删除">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2024004</td>
+                            <td>于睿的创新能力评估报告</td>
+                            <td><span class="badge bg-primary">创新能力</span></td>
+                            <td>2024-03-14</td>
+                            <td>于睿</td>
+                            <td>系统生成</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="#" class="btn btn-outline-primary" title="查看">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" title="删除">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2024005</td>
+                            <td>唐诗涵的综合素养评估报告</td>
+                            <td><span class="badge bg-success">综合素养</span></td>
+                            <td>2024-03-13</td>
+                            <td>唐诗涵</td>
+                            <td>系统生成</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="#" class="btn btn-outline-primary" title="查看">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" title="删除">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2024006</td>
+                            <td>邓云熙的专业能力评估报告</td>
+                            <td><span class="badge bg-info">专业能力</span></td>
+                            <td>2024-03-13</td>
+                            <td>邓云熙</td>
+                            <td>系统生成</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="#" class="btn btn-outline-primary" title="查看">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" title="删除">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2024007</td>
+                            <td>常嘉伦的社会实践评估报告</td>
+                            <td><span class="badge bg-warning">社会实践</span></td>
+                            <td>2024-03-13</td>
+                            <td>常嘉伦</td>
+                            <td>系统生成</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="#" class="btn btn-outline-primary" title="查看">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" title="删除">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2024008</td>
+                            <td>魏晓明的创新能力评估报告</td>
+                            <td><span class="badge bg-primary">创新能力</span></td>
+                            <td>2024-03-12</td>
+                            <td>魏晓明</td>
+                            <td>系统生成</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="#" class="btn btn-outline-primary" title="查看">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" title="删除">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2024009</td>
+                            <td>孟晓彤的综合素养评估报告</td>
+                            <td><span class="badge bg-success">综合素养</span></td>
+                            <td>2024-03-12</td>
+                            <td>孟晓彤</td>
+                            <td>系统生成</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="#" class="btn btn-outline-primary" title="查看">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" title="删除">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2024010</td>
+                            <td>冯云宏的专业能力评估报告</td>
+                            <td><span class="badge bg-info">专业能力</span></td>
+                            <td>2024-03-12</td>
+                            <td>冯云宏</td>
+                            <td>系统生成</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="#" class="btn btn-outline-primary" title="查看">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" title="删除">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if pagination and pagination.pages > 1 %}
+        <div class="card-footer">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('system.literacy_reports', page=pagination.prev_num, search=request.args.get('search', ''), type=request.args.get('type', '')) if pagination.has_prev else '#' }}">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    
+                    {% for p in pagination.iter_pages() %}
+                        {% if p %}
+                            {% if p == pagination.page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ p }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('system.literacy_reports', page=p, search=request.args.get('search', ''), type=request.args.get('type', '')) }}">{{ p }}</a>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('system.literacy_reports', page=pagination.next_num, search=request.args.get('search', ''), type=request.args.get('type', '')) if pagination.has_next else '#' }}">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 能力雷达图 -->
+    <div class="card radar-card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-chart-radar"></i> 能力分布</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <canvas id="skillRadarChart" width="400" height="300"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-4">
+                        <h6>素养能力指标说明</h6>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex align-items-center border-0 ps-0">
+                                <span class="badge bg-success me-2">专业素养</span> 专业知识掌握程度和实践能力
+                            </li>
+                            <li class="list-group-item d-flex align-items-center border-0 ps-0">
+                                <span class="badge bg-primary me-2">创新能力</span> 创新思维和解决问题的能力
+                            </li>
+                            <li class="list-group-item d-flex align-items-center border-0 ps-0">
+                                <span class="badge bg-warning me-2">团队协作</span> 团队合作和沟通能力
+                            </li>
+                            <li class="list-group-item d-flex align-items-center border-0 ps-0">
+                                <span class="badge bg-info me-2">社会实践</span> 社会实践和社会责任感
+                            </li>
+                            <li class="list-group-item d-flex align-items-center border-0 ps-0">
+                                <span class="badge bg-danger me-2">综合素质</span> 人文素养和全面发展
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="evaluation-card">
+                        <h6><i class="fas fa-lightbulb"></i> 总体评价</h6>
+                        <p class="mb-0">当前评估数据显示，专业素养和团队协作能力较为突出，建议在创新能力方面继续加强。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+        
+        <!-- 移动端视图 -->
+        <div class="tab-pane fade" id="mobile-view" role="tabpanel" aria-labelledby="mobile-tab">
+            <div class="row stats-row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center">
+                            <div class="icon bg-purple">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div>
+                                <h2 id="totalStudents">20</h2>
+                                <p>总学生数</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center">
+                            <div class="icon bg-blue">
+                                <i class="fas fa-clipboard-check"></i>
+                            </div>
+                            <div>
+                                <h2 id="completedReports">9</h2>
+                                <p>已完成评估</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center">
+                            <div class="icon bg-green">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div>
+                                <h2 id="averageScore">83</h2>
+                                <p>平均素养得分</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center">
+                            <div class="icon bg-orange">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div>
+                                <h2 id="pendingReports">11</h2>
+                                <p>待处理评估</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 搜索和过滤 -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <div class="search-box">
+                                <div class="input-group">
+                                    <input type="text" id="searchInput" class="form-control" placeholder="搜索学生姓名或学号...">
+                                    <button class="btn btn-primary" type="button" id="searchBtn">
+                                        <i class="fas fa-search"></i> 搜索
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 d-flex justify-content-lg-end mt-3 mt-lg-0">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-secondary active" id="filterAll">全部</button>
+                                <button type="button" class="btn btn-outline-secondary" id="filterCompleted">已完成</button>
+                                <button type="button" class="btn btn-outline-secondary" id="filterPending">进行中</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 学生列表表格 -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">学生评估列表</h5>
+                    <button class="btn btn-sm btn-primary" id="refreshStudentData">
+                        <i class="fas fa-sync-alt"></i> 刷新数据
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover" id="studentListTable">
+                        <thead>
+                            <tr>
+                                <th>学生信息</th>
+                                <th>学号</th>
+                                <th class="hide-sm">班级</th>
+                                <th>评估状态</th>
+                                <th class="hide-md">最近更新</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentListTableBody">
+                            <!-- 学生列表将由JavaScript动态生成 -->
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">加载中...</span>
+                                    </div>
+                                    <p class="mt-2 mb-0">正在加载学生数据...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination" id="studentListPagination">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#" data-page="1">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#" data-page="2">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#" data-page="3">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 自动调整iframe高度
+    function resizeIframe(iframe) {
+        try {
+            // 等待iframe加载完成
+            setTimeout(function() {
+                // 获取iframe内部文档的高度
+                const height = iframe.contentWindow.document.body.scrollHeight;
+                console.log('iframe内容高度:', height);
+                
+                // 设置iframe高度，确保所有内容可见且不需要滚动
+                iframe.style.height = (height + 50) + 'px';
+                
+                // 设置iframe样式，使内容适应宽度
+                try {
+                    const iframeDoc = iframe.contentWindow.document;
+                    const contentWrapper = iframeDoc.querySelector('.content-wrapper');
+                    if (contentWrapper) {
+                        contentWrapper.style.maxWidth = '100%';
+                    }
+                } catch (e) {
+                    console.error('调整iframe内容样式失败:', e);
+                }
+            }, 500);
+        } catch (e) {
+            console.error('调整iframe高度失败:', e);
+        }
+    }
+    
+    // 刷新iframe并调整大小
+    document.getElementById('refreshIframe').addEventListener('click', function() {
+        const iframe = document.getElementById('suYangListFrame');
+        iframe.src = iframe.src;
+        
+        // 重新调整大小
+        setTimeout(function() {
+            resizeIframe(iframe);
+        }, 1000);
+    });
+
+    // 确保在切换tab时也会刷新iframe大小
+    const mobileTab = document.getElementById('mobile-tab');
+    if (mobileTab) {
+        mobileTab.addEventListener('click', function() {
+            console.log('切换到学生列表标签');
+            const iframe = document.getElementById('suYangListFrame');
+            if (iframe) {
+                // 刷新iframe
+                iframe.src = iframe.src;
+                
+                // 重新调整大小
+                setTimeout(function() {
+                    resizeIframe(iframe);
+        }, 1000);
+    }
+        });
+    }
+</script>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    console.log('报告页面脚本已加载 - 版本1.2');
+
+    // 确保页面完全加载后执行
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM已加载完成，初始化UI效果');
+        
+        // 初始化工具提示
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+        
+        // 初始化雷达图
+        const ctx = document.getElementById('skillRadarChart').getContext('2d');
+    const skillRadarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['专业素养', '创新能力', '团队协作', '社会实践', '综合素质'],
+            datasets: [{
+                    label: '能力分布',
+                    data: [85, 70, 82, 75, 78],
+                    backgroundColor: 'rgba(111, 66, 193, 0.2)',
+                    borderColor: 'rgba(111, 66, 193, 1)',
+                borderWidth: 2,
+                    pointBackgroundColor: 'rgba(111, 66, 193, 1)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(111, 66, 193, 1)'
+            }]
+        },
+        options: {
+            scales: {
+                r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            stepSize: 20
+                    },
+                    grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        },
+                        angleLines: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    pointLabels: {
+                        font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                        display: false
+                    }
+                },
+                elements: {
+                    line: {
+                        tension: 0.4
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+        
+        // 大屏幕交互效果
+        const dashboardContainer = document.getElementById('dashboard-container');
+        const dashboardContent = document.getElementById('dashboard-content');
+        const dashboardBtn = document.querySelector('.dashboard-btn');
+        
+        // 学生列表相关功能
+        initStudentList();
+    });
+    
+    // 学生列表初始化
+    function initStudentList() {
+        // 加载学生数据
+        loadStudentData();
+        
+        // 搜索功能
+        const searchBtn = document.getElementById('searchBtn');
+        const searchInput = document.getElementById('searchInput');
+        
+        if (searchBtn) {
+            searchBtn.addEventListener('click', function() {
+                searchStudents();
+            });
+        }
+        
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchStudents();
+                }
+            });
+        }
+        
+        // 刷新按钮
+        const refreshBtn = document.getElementById('refreshStudentData');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function() {
+                loadStudentData();
+            });
+        }
+        
+        // 过滤按钮
+        const filterAll = document.getElementById('filterAll');
+        const filterCompleted = document.getElementById('filterCompleted');
+        const filterPending = document.getElementById('filterPending');
+        
+        if (filterAll) {
+            filterAll.addEventListener('click', function() {
+                document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                document.querySelectorAll('#studentListTable tbody tr').forEach(tr => {
+                    tr.style.display = '';
+                });
+            });
+        }
+        
+        if (filterCompleted) {
+            filterCompleted.addEventListener('click', function() {
+                document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                document.querySelectorAll('#studentListTable tbody tr').forEach(tr => {
+                    tr.style.display = 'none';
+                });
+                
+                document.querySelectorAll('#studentListTable tbody tr .badge-success').forEach(badge => {
+                    badge.closest('tr').style.display = '';
+                });
+            });
+        }
+        
+        if (filterPending) {
+            filterPending.addEventListener('click', function() {
+                document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                document.querySelectorAll('#studentListTable tbody tr').forEach(tr => {
+                    tr.style.display = 'none';
+                });
+                
+                document.querySelectorAll('#studentListTable tbody tr .badge-warning').forEach(badge => {
+                    badge.closest('tr').style.display = '';
+                });
+            });
+        }
+        
+        // 分页功能
+        const paginationLinks = document.querySelectorAll('#studentListPagination .page-link');
+        paginationLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                document.querySelectorAll('#studentListPagination .page-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                this.closest('.page-item').classList.add('active');
+                
+                // 模拟页面切换 - 实际项目中应加载对应页的数据
+                loadStudentData();
+            });
+        });
+        
+        // 标签切换时加载数据
+        const mobileTab = document.getElementById('mobile-tab');
+        if (mobileTab) {
+            mobileTab.addEventListener('click', function() {
+                console.log('切换到学生列表标签');
+                // 加载学生列表数据
+                loadStudentData();
+            });
+        }
+    }
+    
+    // 加载学生数据
+    function loadStudentData() {
+        const tableBody = document.getElementById('studentListTableBody');
+        if (!tableBody) return;
+        
+        // 显示加载中
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">加载中...</span>
+                    </div>
+                    <p class="mt-2 mb-0">正在加载学生数据...</p>
+                </td>
+            </tr>
+        `;
+        
+        // 模拟API请求延迟
+        setTimeout(function() {
+            // 生成模拟数据
+            const students = generateMockStudents();
+            renderStudentList(students);
+            updateStatistics(students);
+        }, 800);
+    }
+    
+    // 生成模拟数据
+    function generateMockStudents() {
+        var mockData = [];
+        var names = ["杜聪", "蔡瑶", "雷宇宁", "于睿", "唐诗涵", "邓云熙", "常嘉伦", "魏晓明", "孟晓彤", "冯云宏", 
+                    "齐晓明", "潘杰安", "徐佳怡", "段佳音", "袁文轩", "高梓晨", "梁怡然", "谭语嫣", "丁子涵", "余鸿煊"];
+        var classes = ["计算机科学与技术1班", "软件工程2班", "信息安全3班", "数据科学1班", "人工智能2班"];
+        var statuses = ["已完成", "进行中", "待开始", "已评估"];
+        var dates = ["2024-03-15", "2024-03-14", "2024-03-13", "2024-03-12", "2024-03-11", "2024-03-10"];
+        
+        for (var i = 0; i < 20; i++) {
+            var classIndex = Math.floor(Math.random() * classes.length);
+            var statusIndex = Math.floor(Math.random() * statuses.length);
+            var dateIndex = Math.floor(Math.random() * dates.length);
+            var year = 2024;
+            var id = year + "" + (i + 1).toString().padStart(3, '0');
+            
+            mockData.push({
+                name: names[i],
+                sid: id,
+                class: classes[classIndex],
+                status: statuses[statusIndex],
+                date: dates[dateIndex]
+            });
+        }
+        return mockData;
+    }
+    
+    // 渲染学生列表
+    function renderStudentList(data) {
+        const tableBody = document.getElementById('studentListTableBody');
+        if (!tableBody) return;
+        
+        var html = '';
+        
+        if (data.length === 0) {
+            html = `
+                <tr>
+                    <td colspan="6" class="text-center py-4">
+                        <div>
+                            <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+                            <p class="mb-0">未找到符合条件的学生</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        } else {
+            for (var i = 0; i < data.length; i++) {
+                // 如果没有班级信息，添加一个默认值
+                var className = data[i].class || '未分配班级';
+                var status = data[i].status || '待评估';
+                var date = data[i].date || '暂无记录';
+                
+                // 根据状态设置不同的样式
+                var statusClass = '';
+                var statusDot = '';
+                
+                if (status === '已完成' || status === '已评估') {
+                    statusClass = 'badge-success';
+                    statusDot = 'success';
+                } else if (status === '进行中') {
+                    statusClass = 'badge-warning';
+                    statusDot = 'warning';
+                } else {
+                    statusClass = 'badge-secondary';
+                    statusDot = 'pending';
+                }
+                
+                // 获取姓名首字母
+                var initial = data[i].name.charAt(0);
+                
+                html += `
+                    <tr data-id="${data[i].sid}" data-name="${data[i].name}">
+                        <td>
+                            <div class="student-name">
+                                <div class="student-avatar">${initial}</div>
+                                <div>
+                                    <div>${data[i].name}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${data[i].sid}</td>
+                        <td class="hide-sm">${className}</td>
+                        <td>
+                            <span class="badge ${statusClass}">
+                                <span class="status-dot ${statusDot}"></span>
+                                ${status}
+                            </span>
+                        </td>
+                        <td class="hide-md">
+                            <span class="date">${date}</span>
+                        </td>
+                        <td>
+                            <button class="btn-view view-report" data-id="${data[i].sid}" data-name="${data[i].name}">
+                                <i class="fas fa-eye"></i> 查看
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        tableBody.innerHTML = html;
+        
+        // 添加查看报告事件
+        const viewButtons = document.querySelectorAll('.view-report');
+        viewButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const studentId = this.getAttribute('data-id');
+                const studentName = this.getAttribute('data-name');
+                
+                // 存储到sessionStorage
+                sessionStorage.setItem('sid', studentId);
+                sessionStorage.setItem('sname', studentName);
+                
+                // 跳转到详情页 - 修复路径
+                window.location.href = "/static/mobile_app/School_Security_Platform/page/SuYang.html";
+            });
+        });
+        
+        // 行点击事件
+        const tableRows = document.querySelectorAll('#studentListTableBody tr');
+        tableRows.forEach(row => {
+            row.addEventListener('click', function(e) {
+                // 如果点击的不是按钮
+                if (!e.target.closest('button')) {
+                    const studentId = this.getAttribute('data-id');
+                    const studentName = this.getAttribute('data-name');
+                    
+                    if (studentId) {
+                        sessionStorage.setItem('sid', studentId);
+                        sessionStorage.setItem('sname', studentName);
+                        window.location.href = "/static/mobile_app/School_Security_Platform/page/SuYang.html";
+                    }
+                }
+            });
+        });
+    }
+    
+    // 搜索学生
+    function searchStudents() {
+        const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+        const tableRows = document.querySelectorAll('#studentListTable tbody tr');
+        
+        if (!keyword) {
+            tableRows.forEach(row => {
+                row.style.display = '';
+            });
+            return;
+        }
+        
+        let found = false;
+        
+        tableRows.forEach(row => {
+            const studentName = row.getAttribute('data-name') || '';
+            const studentId = row.getAttribute('data-id') || '';
+            const rowText = row.textContent.toLowerCase();
+            
+            if (studentName.toLowerCase().includes(keyword) || 
+                studentId.toString().includes(keyword) || 
+                rowText.includes(keyword)) {
+                row.style.display = '';
+                found = true;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        // 如果没有找到匹配的行
+        if (!found) {
+            const tableBody = document.getElementById('studentListTableBody');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-4">
+                        <div>
+                            <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+                            <p class="mb-0">未找到符合"${keyword}"的学生</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+    
+    // 更新统计数据
+    function updateStatistics(data) {
+        // 总学生数
+        document.getElementById('totalStudents').textContent = data.length;
+        
+        // 已完成评估数
+        const completed = data.filter(student => 
+            student.status === '已完成' || student.status === '已评估'
+        ).length;
+        document.getElementById('completedReports').textContent = completed;
+        
+        // 待处理评估
+        const pending = data.filter(student => 
+            student.status === '进行中' || student.status === '待开始'
+        ).length;
+        document.getElementById('pendingReports').textContent = pending;
+        
+        // 平均分数
+        document.getElementById('averageScore').textContent = 83;
+    }
+</script>
+{% endblock %} 

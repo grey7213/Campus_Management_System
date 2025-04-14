@@ -1,0 +1,315 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block title %}班级管理 - {{ settings.get('site_name', '校园综合管理平台') }}{% endblock %}
+
+{% block content %}
+<!-- 欢迎部分 -->
+<div class="welcome-section">
+    <h1 class="welcome-heading">班级管理</h1>
+    <p class="welcome-date">管理学校各专业的班级信息</p>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">班级列表</h5>
+                    <div>
+                        <a href="{{ url_for('admin.create_class') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> 添加班级
+                        </a>
+                        <div class="btn-group ms-2">
+                            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                批量操作
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-file-export me-2"></i>导出班级名单</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-print me-2"></i>打印班级列表</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash me-2"></i>批量删除</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <form action="{{ url_for('admin.classes') }}" method="GET" class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="q" placeholder="搜索班级名称" value="{{ request.args.get('q', '') }}">
+                            <button class="btn btn-outline-secondary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" name="major_id" onchange="this.form.submit()">
+                            <option value="">所有专业</option>
+                            {% for major in majors %}
+                            <option value="{{ major.id }}" {% if request.args.get('major_id')|int == major.id %}selected{% endif %}>{{ major.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" name="grade" onchange="this.form.submit()">
+                            <option value="">所有年级</option>
+                            {% for year in grade_years %}
+                            <option value="{{ year }}" {% if request.args.get('grade') == year %}selected{% endif %}>{{ year }}级</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-secondary w-100" type="button" id="resetButton" data-url="{{ url_for('admin.classes') }}">
+                            <i class="fas fa-sync-alt me-1"></i> 重置
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="selectAll">
+                                    </div>
+                                </th>
+                                <th>班级名称</th>
+                                <th>年级</th>
+                                <th>专业</th>
+                                <th>院系</th>
+                                <th>班主任</th>
+                                <th>学生人数</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for class in classes %}
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input class-checkbox" type="checkbox" value="{{ class.id }}">
+                                    </div>
+                                </td>
+                                <td>{{ class.name }}</td>
+                                <td>{{ class.grade }}级</td>
+                                <td>{{ class.major.name if class.major else '未分配' }}</td>
+                                <td>{{ class.major.department.name if class.major and class.major.department else '未分配' }}</td>
+                                <td>{{ class.advisor.name if class.advisor else '未指定' }}</td>
+                                <td>
+                                    {% if class.students is defined %}
+                                        {{ class.students.count() }}
+                                    {% else %}
+                                        {{ class.students_count }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ class.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('admin.classes') }}" class="btn btn-outline-primary" title="查看班级详情">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('admin.create_class') }}" class="btn btn-outline-secondary" title="编辑班级">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-outline-danger" title="删除班级" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="{{ class.id }}" data-name="{{ class.name }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="9" class="text-center py-3">
+                                    <div class="py-5">
+                                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">暂无班级数据</p>
+                                        <a href="{{ url_for('admin.create_class') }}" class="btn btn-primary mt-2">
+                                            <i class="fas fa-plus me-1"></i> 添加第一个班级
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页 -->
+                {% if pagination and pagination.pages > 1 %}
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>显示 {{ pagination.page }} / {{ pagination.pages }} 页，共 {{ pagination.total }} 条记录</div>
+                    <nav>
+                        <ul class="pagination mb-0">
+                            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin.classes', page=pagination.prev_num, q=request.args.get('q', ''), major_id=request.args.get('major_id', ''), grade=request.args.get('grade', '')) if pagination.has_prev else '#' }}">上一页</a>
+                            </li>
+                            
+                            {% for page in pagination.iter_pages() %}
+                                {% if page %}
+                                    <li class="page-item {% if page == pagination.page %}active{% endif %}">
+                                        <a class="page-link" href="{{ url_for('admin.classes', page=page, q=request.args.get('q', ''), major_id=request.args.get('major_id', ''), grade=request.args.get('grade', '')) }}">{{ page }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin.classes', page=pagination.next_num, q=request.args.get('q', ''), major_id=request.args.get('major_id', ''), grade=request.args.get('grade', '')) if pagination.has_next else '#' }}">下一页</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 班级数据统计 -->
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-1">总班级数</h6>
+                        <h2 class="mb-0">{{ pagination.total if pagination else classes|length }}</h2>
+                    </div>
+                    <div class="bg-primary-light rounded-circle p-3">
+                        <i class="fas fa-users fa-2x text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-1">总学生数</h6>
+                        <h2 class="mb-0">
+                            {% if classes %}
+                                {% set total = 0 %}
+                                {% for class in classes %}
+                                    {% if class.students is defined %}
+                                        {% set total = total + class.students.count() %}
+                                    {% else %}
+                                        {% set total = total + class.students_count %}
+                                    {% endif %}
+                                {% endfor %}
+                                {{ total }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </h2>
+                    </div>
+                    <div class="bg-success-light rounded-circle p-3">
+                        <i class="fas fa-user-graduate fa-2x text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-1">平均班级人数</h6>
+                        <h2 class="mb-0">
+                            {% if classes %}
+                                {% set total = 0 %}
+                                {% for class in classes %}
+                                    {% if class.students is defined %}
+                                        {% set total = total + class.students.count() %}
+                                    {% else %}
+                                        {% set total = total + class.students_count %}
+                                    {% endif %}
+                                {% endfor %}
+                                {{ (total / classes|length)|round|int }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </h2>
+                    </div>
+                    <div class="bg-info-light rounded-circle p-3">
+                        <i class="fas fa-chart-pie fa-2x text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">确认删除班级</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>确定要删除班级 <strong id="className"></strong> 吗？</p>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span>删除班级将会解除该班级下所有学生的班级关联。建议先将学生转移到其他班级，或者先删除相关学生。</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <form id="deleteForm" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">确认删除</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 全选功能
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const classCheckboxes = document.querySelectorAll('.class-checkbox');
+        
+        // 重置按钮
+        const resetButton = document.getElementById('resetButton');
+        if (resetButton) {
+            resetButton.addEventListener('click', function() {
+                window.location.href = this.getAttribute('data-url');
+            });
+        }
+        
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                classCheckboxes.forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+            });
+        }
+        
+        // 删除班级的模态框处理
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const classId = button.getAttribute('data-id');
+                const className = button.getAttribute('data-name');
+                const deleteForm = document.getElementById('deleteForm');
+                const classNameEl = document.getElementById('className');
+                
+                deleteForm.action = `{{ url_for('admin.classes') }}/${classId}/delete`;
+                classNameEl.textContent = className;
+            });
+        }
+    });
+</script>
+{% endblock %} 

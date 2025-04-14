@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}微信绑定成功 - {{ settings.get('site_name', '校园综合管理平台') }}{% endblock %}
+
+{% block css %}
+<style>
+    .success-container {
+        max-width: 500px;
+        margin: 3rem auto;
+        padding: 2.5rem;
+        border-radius: 15px;
+        background-color: #fff;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+    
+    .success-icon {
+        font-size: 4rem;
+        color: #198754;
+        margin-bottom: 1.5rem;
+    }
+    
+    .success-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .success-message {
+        font-size: 1.1rem;
+        color: #6c757d;
+        margin-bottom: 2rem;
+    }
+    
+    .countdown {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="success-container">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        
+        <h2 class="success-title">微信绑定成功！</h2>
+        
+        <p class="success-message">
+            您的微信账号已成功绑定到校园管理平台
+            <br>现在您可以通过微信接收平台通知
+        </p>
+        
+        <a href="{{ url_for('user.profile') }}" class="btn btn-primary">
+            <i class="fas fa-user me-1"></i> 返回个人中心
+        </a>
+        
+        <p class="countdown mt-3">
+            <small>系统将在 <span id="countdown">5</span> 秒后自动跳转...</small>
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let countdown = 5;
+        const countdownEl = document.getElementById('countdown');
+        
+        const timer = setInterval(function() {
+            countdown--;
+            countdownEl.textContent = countdown;
+            
+            if (countdown <= 0) {
+                clearInterval(timer);
+                window.location.href = "{{ url_for('user.profile') }}";
+            }
+        }, 1000);
+    });
+</script>
+{% endblock %} 

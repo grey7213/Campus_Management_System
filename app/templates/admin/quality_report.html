@@ -1,0 +1,346 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block title %}素养报告 - {{ super() }}{% endblock %}
+
+{% block css %}
+<style>
+    .stats-card {
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        color: white;
+        transition: transform 0.3s;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    .stats-card .number {
+        font-size: 2em;
+        font-weight: bold;
+    }
+    .stats-card .label {
+        opacity: 0.9;
+        font-size: 1.1em;
+    }
+    .stats-card .icon {
+        font-size: 2em;
+        opacity: 0.5;
+    }
+    .purple-gradient {
+        background: linear-gradient(135deg, #6f42c1 0%, #8b5cf6 100%);
+    }
+    .green-gradient {
+        background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+    }
+    .yellow-gradient {
+        background: linear-gradient(135deg, #ffc107 0%, #ffcd39 100%);
+    }
+    .blue-gradient {
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+    }
+    .dashboard-container {
+        margin-top: 20px;
+        border-radius: 10px;
+        overflow: hidden;
+        background: white;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    .tab-content {
+        padding: 20px;
+        background: white;
+        border-radius: 0 0 10px 10px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    .nav-tabs .nav-link {
+        font-weight: 500;
+        color: #495057;
+        padding: 12px 20px;
+    }
+    .nav-tabs .nav-link.active {
+        color: #6f42c1;
+        border-color: #dee2e6 #dee2e6 #fff;
+    }
+    .custom-tab-content {
+        display: none;
+    }
+    .custom-tab-content.active {
+        display: block;
+    }
+    .ability-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .ability-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 15px;
+        border-radius: 20px;
+        color: white;
+        font-size: 14px;
+    }
+    .professional {
+        background-color: #28a745;
+    }
+    .creative {
+        background-color: #8540be;
+    }
+    .teamwork {
+        background-color: #ffc107;
+    }
+    .social {
+        background-color: #17a2b8;
+    }
+    .comprehensive {
+        background-color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <!-- 统计卡片 -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stats-card purple-gradient">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="number">{{ report_count|default(0) }}</div>
+                        <div class="label">报告总数</div>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card green-gradient">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="number">{{ comprehensive_count|default(0) }}</div>
+                        <div class="label">综合素养</div>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card yellow-gradient">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="number">{{ professional_count|default(0) }}</div>
+                        <div class="label">专业能力</div>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card blue-gradient">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="number">{{ social_count|default(0) }}</div>
+                        <div class="label">社会实践</div>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 自定义标签页导航 -->
+    <div class="card mt-4">
+        <div class="card-header bg-white p-0">
+            <ul class="nav nav-tabs" id="customTabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="reports-tab" data-target="reports-content">
+                        素养报告列表
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="ability-tab" data-target="ability-content">
+                        能力分布
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="card-body p-0">
+            <!-- 报告列表标签页 -->
+            <div class="custom-tab-content active" id="reports-content">
+                <div class="p-4">
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="搜索报告...">
+                                <button class="btn btn-primary">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select">
+                                <option value="">所有类型</option>
+                                <option value="comprehensive">综合素养</option>
+                                <option value="professional">专业能力</option>
+                                <option value="social">社会实践</option>
+                            </select>
+                        </div>
+                        <div class="col-md-5 text-end">
+                            <button class="btn btn-success">
+                                <i class="fas fa-plus me-1"></i>创建报告
+                            </button>
+                            <button class="btn btn-outline-primary ms-2">
+                                <i class="fas fa-download me-1"></i>导出
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 报告列表 -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>报告标题</th>
+                                    <th>类型</th>
+                                    <th>创建日期</th>
+                                    <th>用户</th>
+                                    <th>创建人</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- 暂无数据提示 -->
+                                <tr>
+                                    <td colspan="7" class="text-center py-5">
+                                        <div class="text-center">
+                                            <i class="fas fa-file-alt mb-3" style="font-size: 3rem; color: #ccc;"></i>
+                                            <h5>暂无素养报告</h5>
+                                            <p class="text-muted">目前没有任何素养评估报告</p>
+                                            <button class="btn btn-primary">
+                                                <i class="fas fa-plus me-1"></i>创建报告
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 能力分布标签页 -->
+            <div class="custom-tab-content" id="ability-content">
+                <div class="p-4">
+                    <div class="row align-items-center mb-4">
+                        <div class="col-md-6">
+                            <h5 class="mb-0">素养能力指标说明</h5>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <select class="form-select d-inline-block w-auto">
+                                <option value="all">全部学生</option>
+                                <option value="class">按班级</option>
+                                <option value="major">按专业</option>
+                                <option value="department">按院系</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="ability-legend">
+                        <div class="ability-item professional">
+                            <i class="fas fa-laptop-code me-2"></i>专业知识掌握度和实践能力
+                        </div>
+                        <div class="ability-item creative">
+                            <i class="fas fa-lightbulb me-2"></i>创新思维和解决问题的能力
+                        </div>
+                        <div class="ability-item teamwork">
+                            <i class="fas fa-users me-2"></i>团队合作和沟通能力
+                        </div>
+                        <div class="ability-item social">
+                            <i class="fas fa-globe me-2"></i>社会实践和社会责任感
+                        </div>
+                        <div class="ability-item comprehensive">
+                            <i class="fas fa-star me-2"></i>人文素养和全面发展
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-7">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-3">能力分布雷达图</h5>
+                                    <div style="height: 400px; position: relative;">
+                                        <img src="https://via.placeholder.com/800x400?text=能力分布雷达图" alt="能力分布雷达图" class="img-fluid" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-3">统计数据</h5>
+                                    <div class="mb-4">
+                                        <h6>总体评价</h6>
+                                        <p class="text-muted">
+                                            当前评估数据显示，专业素养和团队协作能力较为突出，建议在创新能力方面继续加强。
+                                        </p>
+                                    </div>
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            平均水平
+                                            <span class="badge bg-primary rounded-pill">85%</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            优秀人数
+                                            <span class="badge bg-success rounded-pill">120</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            达标人数
+                                            <span class="badge bg-info rounded-pill">230</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            待提升人数
+                                            <span class="badge bg-warning rounded-pill">50</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 处理标签页切换
+    const tabs = document.querySelectorAll('#customTabs .nav-link');
+    
+    tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            // 移除所有标签和内容的active类
+            tabs.forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.custom-tab-content').forEach(c => c.classList.remove('active'));
+            
+            // 激活当前标签和内容
+            this.classList.add('active');
+            const targetId = this.getAttribute('data-target');
+            document.getElementById(targetId).classList.add('active');
+        });
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,233 @@
+{% extends 'admin/admin_layout.html' %}
+
+{% block title %}教师管理 - {{ settings.get('site_name', '校园综合管理平台') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3>教师管理</h3>
+            <p class="text-muted">管理学校教师信息，包括教师基本资料、院系归属、教学信息等</p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <a href="{{ url_for('admin.create_teacher') }}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> 添加教师
+                            </a>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-file-export"></i> 导出
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-file-excel me-2"></i> Excel</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-file-csv me-2"></i> CSV</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-print me-2"></i> 打印列表</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <form action="{{ url_for('admin.teachers') }}" method="GET" class="mb-4">
+                        <div class="row g-3">
+                            <div class="col-md-5">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" class="form-control" name="q" placeholder="搜索教师姓名或工号" value="{{ request.args.get('q', '') }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <select name="department_id" class="form-select">
+                                    <option value="">所有院系</option>
+                                    {% for department in departments %}
+                                    <option value="{{ department.id }}" {% if request.args.get('department_id')|int == department.id %}selected{% endif %}>
+                                        {{ department.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <select name="status" class="form-select">
+                                    <option value="">所有状态</option>
+                                    <option value="active" {% if request.args.get('status') == 'active' %}selected{% endif %}>在职</option>
+                                    <option value="leave" {% if request.args.get('status') == 'leave' %}selected{% endif %}>休假</option>
+                                    <option value="retired" {% if request.args.get('status') == 'retired' %}selected{% endif %}>退休</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-secondary w-100">
+                                    <i class="fas fa-filter"></i> 筛选
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>工号</th>
+                                    <th>姓名</th>
+                                    <th>性别</th>
+                                    <th>所属院系</th>
+                                    <th>职称</th>
+                                    <th>邮箱/电话</th>
+                                    <th>状态</th>
+                                    <th class="text-end">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if teachers %}
+                                    {% for teacher in teachers %}
+                                    <tr>
+                                        <td>{{ teacher.teacher_id }}</td>
+                                        <td>
+                                            <a href="{{ url_for('admin.view_teacher', id=teacher.id) }}">
+                                                {{ teacher.name }}
+                                            </a>
+                                        </td>
+                                        <td>{{ teacher.gender }}</td>
+                                        <td>
+                                            {% if teacher.department %}
+                                                {{ teacher.department.name }}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ teacher.title }}</td>
+                                        <td>
+                                            {% if teacher.phone %}
+                                                <div><small><i class="fas fa-phone me-1"></i> {{ teacher.phone }}</small></div>
+                                            {% endif %}
+                                            {% if teacher.user and teacher.user.email %}
+                                                <div><small><i class="fas fa-envelope me-1"></i> {{ teacher.user.email }}</small></div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if teacher.status == 'active' %}
+                                                <span class="badge bg-success">在职</span>
+                                            {% elif teacher.status == 'leave' %}
+                                                <span class="badge bg-warning">休假</span>
+                                            {% elif teacher.status == 'retired' %}
+                                                <span class="badge bg-secondary">退休</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ teacher.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group float-end">
+                                                <a href="{{ url_for('admin.view_teacher', id=teacher.id) }}" class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{{ url_for('admin.edit_teacher', id=teacher.id) }}" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-danger" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#deleteModal" 
+                                                        data-teacher-id="{{ teacher.id }}"
+                                                        data-teacher-name="{{ teacher.name }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="8" class="text-center p-5">
+                                            <div class="text-muted">
+                                                <i class="fas fa-user-slash fa-3x mb-3"></i>
+                                                <p>暂无教师记录</p>
+                                                <a href="{{ url_for('admin.create_teacher') }}" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-plus"></i> 添加教师
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if pagination and pagination.pages > 1 %}
+                    <nav aria-label="分页导航" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin.teachers', page=pagination.prev_num, **request.args) if pagination.has_prev else '#' }}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                            
+                            {% set start_page = pagination.page - 2 if pagination.page > 2 else 1 %}
+                            {% set end_page = start_page + 4 if start_page + 4 <= pagination.pages else pagination.pages %}
+                            {% set start_page = end_page - 4 if end_page - 4 > 0 else 1 %}
+                            
+                            {% for p in range(start_page, end_page + 1) %}
+                            <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin.teachers', page=p, **request.args) }}">{{ p }}</a>
+                            </li>
+                            {% endfor %}
+                            
+                            <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin.teachers', page=pagination.next_num, **request.args) if pagination.has_next else '#' }}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">确认删除</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>确定要删除教师 <span id="teacherNamePlaceholder" class="fw-bold"></span> 吗？</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span>警告：此操作不可逆，将同时删除该教师的用户账号。如果教师有关联的课程，将无法删除。</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <form id="deleteForm" method="post" action="">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-danger">确认删除</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 处理删除模态框
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteModal = document.getElementById('deleteModal');
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const teacherId = button.getAttribute('data-teacher-id');
+            const teacherName = button.getAttribute('data-teacher-name');
+            
+            document.getElementById('teacherNamePlaceholder').textContent = teacherName;
+            document.getElementById('deleteForm').action = "{{ url_for('admin.delete_teacher', id=0) }}".replace('/0', '/' + teacherId);
+        });
+    });
+</script>
+{% endblock %}

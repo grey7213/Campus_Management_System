@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}教师控制面板 - 校园管理系统{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-tachometer-alt mr-2"></i>教师控制面板</h2>
+        <div>
+            <span class="text-muted">今天是：</span>
+            <span id="current-date" class="font-weight-bold"></span>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">我的课程</h6>
+                            <h3 class="mb-0">{{ course_count }}</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-book fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">我的学生</h6>
+                            <h3 class="mb-0">{{ student_count }}</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-user-graduate fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">待批改作业</h6>
+                            <h3 class="mb-0">{{ homework_count }}</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-tasks fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="mb-3">功能导航</h4>
+    <div class="row">
+        <!-- 课程管理 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-primary-light mx-auto">
+                        <i class="fas fa-book text-white"></i>
+                    </div>
+                    <h5 class="module-title">课程管理</h5>
+                    <p class="card-text">管理我的课程信息和教学安排</p>
+                    <a href="{{ url_for('teacher.courses') }}" class="btn btn-sm btn-outline-primary">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 学生管理 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-success-light mx-auto">
+                        <i class="fas fa-user-graduate text-white"></i>
+                    </div>
+                    <h5 class="module-title">学生管理</h5>
+                    <p class="card-text">查看和管理我的学生信息</p>
+                    <a href="{{ url_for('teacher.students') }}" class="btn btn-sm btn-outline-success">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 成绩管理 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-info-light mx-auto">
+                        <i class="fas fa-chart-bar text-white"></i>
+                    </div>
+                    <h5 class="module-title">成绩管理</h5>
+                    <p class="card-text">录入和管理学生成绩</p>
+                    <a href="{{ url_for('teacher.grades') }}" class="btn btn-sm btn-outline-info">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 作业管理 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-warning-light mx-auto">
+                        <i class="fas fa-tasks text-white"></i>
+                    </div>
+                    <h5 class="module-title">作业管理</h5>
+                    <p class="card-text">布置和批改学生作业</p>
+                    <a href="{{ url_for('teacher.homework') }}" class="btn btn-sm btn-outline-warning">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 教学资料 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-danger-light mx-auto">
+                        <i class="fas fa-file-alt text-white"></i>
+                    </div>
+                    <h5 class="module-title">教学资料</h5>
+                    <p class="card-text">上传和管理教学资料</p>
+                    <a href="{{ url_for('teacher.materials') }}" class="btn btn-sm btn-outline-danger">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 考勤管理 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-purple-light mx-auto">
+                        <i class="fas fa-clipboard-check text-white"></i>
+                    </div>
+                    <h5 class="module-title">考勤管理</h5>
+                    <p class="card-text">记录和管理学生考勤</p>
+                    <a href="{{ url_for('teacher.attendance') }}" class="btn btn-sm btn-outline-primary">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 个人信息 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-secondary mx-auto">
+                        <i class="fas fa-user-cog text-white"></i>
+                    </div>
+                    <h5 class="module-title">个人信息</h5>
+                    <p class="card-text">查看和修改个人信息</p>
+                    <a href="{{ url_for('teacher.profile') }}" class="btn btn-sm btn-outline-secondary">进入</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 显示当前日期
+        const now = new Date();
+        const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+        document.getElementById('current-date').textContent = now.toLocaleDateString('zh-CN', options);
+    });
+</script>
+{% endblock %}

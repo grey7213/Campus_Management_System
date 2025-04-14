@@ -1,0 +1,616 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block title %}学生管理 - 校园综合管理平台{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0"><i class="fas fa-user-graduate me-2"></i>学生管理</h2>
+    <a href="{{ url_for('admin.create_student') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> 添加学生
+    </a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <div class="row">
+            <div class="col-md-8">
+                <form action="{{ url_for('admin.students') }}" method="GET" class="d-flex flex-wrap gap-2">
+                    <div class="input-group" style="width: auto;">
+                        <input type="text" name="q" class="form-control" placeholder="搜索学生..." value="{{ request.args.get('q', '') }}">
+                        <button class="btn btn-outline-secondary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    
+                    <select name="class_id" class="form-select" style="width: auto;">
+                        <option value="">所有班级</option>
+                        {% for class in classes %}
+                        <option value="{{ class.id }}" {% if request.args.get('class_id')|int == class.id %}selected{% endif %}>{{ class.name }}</option>
+                        {% endfor %}
+                    </select>
+                    
+                    <select name="status" class="form-select" style="width: auto;">
+                        <option value="">所有状态</option>
+                        <option value="active" {% if request.args.get('status') == 'active' %}selected{% endif %}>在读</option>
+                        <option value="graduated" {% if request.args.get('status') == 'graduated' %}selected{% endif %}>已毕业</option>
+                        <option value="suspended" {% if request.args.get('status') == 'suspended' %}selected{% endif %}>休学</option>
+                    </select>
+                    
+                    <button type="submit" class="btn btn-primary">筛选</button>
+                </form>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{{ url_for('admin.import_students') }}" class="btn btn-success me-1">
+                    <i class="fas fa-file-import me-1"></i> 导入
+                </a>
+                <a href="{{ url_for('admin.export_students') }}" class="btn btn-info">
+                    <i class="fas fa-file-export me-1"></i> 导出
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th>学号</th>
+                    <th>姓名</th>
+                    <th>性别</th>
+                    <th>班级</th>
+                    <th>专业</th>
+                    <th>联系电话</th>
+                    <th>邮箱</th>
+                    <th>状态</th>
+                    <th width="150">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if students %}
+                    {% for student in students %}
+                    <tr>
+                        <td>{{ student.student_id }}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-2" style="width: 32px; height: 32px;">
+                                    <span class="initials" style="font-size: 16px;">{{ student.name[0] }}</span>
+                                </div>
+                                <span>{{ student.name }}</span>
+                            </div>
+                        </td>
+                        <td>{{ {'male': '男', 'female': '女', 'other': '其他'}.get(student.gender, student.gender) }}</td>
+                        <td>{{ student.class.name if student.class else '未分配' }}</td>
+                        <td>{{ student.class.major.name if student.class and student.class.major else '未分配' }}</td>
+                        <td>{{ student.phone or '-' }}</td>
+                        <td>{{ student.user.email if student.user else '-' }}</td>
+                        <td>
+                            {% if student.status == 'active' %}
+                            <span class="badge bg-success">在读</span>
+                            {% elif student.status == 'graduated' %}
+                            <span class="badge bg-info">已毕业</span>
+                            {% elif student.status == 'suspended' %}
+                            <span class="badge bg-warning">休学</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{{ student.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('admin.edit_student', id=student.id) }}" class="btn btn-outline-primary" title="编辑">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{{ url_for('admin.view_student', id=student.id) }}" class="btn btn-outline-info" title="查看">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ student.id }}" title="删除">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- 删除确认模态框 -->
+                            <div class="modal fade" id="deleteModal{{ student.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ student.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="deleteModalLabel{{ student.id }}">确认删除</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            确定要删除学生 {{ student.name }} ({{ student.student_id }}) 吗？此操作不可撤销。
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                            <form action="{{ url_for('admin.delete_student', id=student.id) }}" method="POST" style="display: inline;">
+                                                <button type="submit" class="btn btn-danger">确认删除</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <!-- 添加示例数据 -->
+                    <tr>
+                        <td>2024001</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-2" style="width: 32px; height: 32px;">
+                                    <span class="initials" style="font-size: 16px;">杜</span>
+                                </div>
+                                <span>杜聪</span>
+                            </div>
+                        </td>
+                        <td>男</td>
+                        <td>计算机科学与技术1班</td>
+                        <td>计算机科学与技术</td>
+                        <td>13800138001</td>
+                        <td>ducong@example.com</td>
+                        <td><span class="badge bg-success">在读</span></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="#" class="btn btn-outline-primary" title="编辑">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-info" title="查看">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" title="删除">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2024002</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-2" style="width: 32px; height: 32px;">
+                                    <span class="initials" style="font-size: 16px;">蔡</span>
+                                </div>
+                                <span>蔡瑶</span>
+                            </div>
+                        </td>
+                        <td>女</td>
+                        <td>软件工程2班</td>
+                        <td>软件工程</td>
+                        <td>13800138002</td>
+                        <td>caiyao@example.com</td>
+                        <td><span class="badge bg-success">在读</span></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="#" class="btn btn-outline-primary" title="编辑">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-info" title="查看">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" title="删除">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2024003</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-2" style="width: 32px; height: 32px;">
+                                    <span class="initials" style="font-size: 16px;">雷</span>
+                                </div>
+                                <span>雷宇宁</span>
+                            </div>
+                        </td>
+                        <td>男</td>
+                        <td>信息安全3班</td>
+                        <td>信息安全</td>
+                        <td>13800138003</td>
+                        <td>leiyuning@example.com</td>
+                        <td><span class="badge bg-success">在读</span></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="#" class="btn btn-outline-primary" title="编辑">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-info" title="查看">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" title="删除">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2024004</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-2" style="width: 32px; height: 32px;">
+                                    <span class="initials" style="font-size: 16px;">于</span>
+                                </div>
+                                <span>于睿</span>
+                            </div>
+                        </td>
+                        <td>男</td>
+                        <td>数据科学1班</td>
+                        <td>数据科学</td>
+                        <td>13800138004</td>
+                        <td>yurui@example.com</td>
+                        <td><span class="badge bg-warning">休学</span></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="#" class="btn btn-outline-primary" title="编辑">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-info" title="查看">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" title="删除">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2024005</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-2" style="width: 32px; height: 32px;">
+                                    <span class="initials" style="font-size: 16px;">唐</span>
+                                </div>
+                                <span>唐诗涵</span>
+                            </div>
+                        </td>
+                        <td>女</td>
+                        <td>人工智能2班</td>
+                        <td>人工智能</td>
+                        <td>13800138005</td>
+                        <td>tangshihan@example.com</td>
+                        <td><span class="badge bg-success">在读</span></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="#" class="btn btn-outline-primary" title="编辑">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-info" title="查看">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" title="删除">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2024006</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-2" style="width: 32px; height: 32px;">
+                                    <span class="initials" style="font-size: 16px;">邓</span>
+                                </div>
+                                <span>邓云熙</span>
+                            </div>
+                        </td>
+                        <td>男</td>
+                        <td>计算机科学与技术1班</td>
+                        <td>计算机科学与技术</td>
+                        <td>13800138006</td>
+                        <td>dengyunxi@example.com</td>
+                        <td><span class="badge bg-info">已毕业</span></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="#" class="btn btn-outline-primary" title="编辑">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-info" title="查看">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" title="删除">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2024007</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-2" style="width: 32px; height: 32px;">
+                                    <span class="initials" style="font-size: 16px;">常</span>
+                                </div>
+                                <span>常嘉伦</span>
+                            </div>
+                        </td>
+                        <td>男</td>
+                        <td>软件工程2班</td>
+                        <td>软件工程</td>
+                        <td>13800138007</td>
+                        <td>changjialun@example.com</td>
+                        <td><span class="badge bg-success">在读</span></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="#" class="btn btn-outline-primary" title="编辑">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-info" title="查看">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" title="删除">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2024008</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-2" style="width: 32px; height: 32px;">
+                                    <span class="initials" style="font-size: 16px;">魏</span>
+                                </div>
+                                <span>魏晓明</span>
+                            </div>
+                        </td>
+                        <td>男</td>
+                        <td>信息安全3班</td>
+                        <td>信息安全</td>
+                        <td>13800138008</td>
+                        <td>weixiaoming@example.com</td>
+                        <td><span class="badge bg-success">在读</span></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="#" class="btn btn-outline-primary" title="编辑">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-info" title="查看">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" title="删除">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2024009</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-2" style="width: 32px; height: 32px;">
+                                    <span class="initials" style="font-size: 16px;">孟</span>
+                                </div>
+                                <span>孟晓彤</span>
+                            </div>
+                        </td>
+                        <td>女</td>
+                        <td>数据科学1班</td>
+                        <td>数据科学</td>
+                        <td>13800138009</td>
+                        <td>mengxiaotong@example.com</td>
+                        <td><span class="badge bg-success">在读</span></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="#" class="btn btn-outline-primary" title="编辑">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-info" title="查看">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" title="删除">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2024010</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-2" style="width: 32px; height: 32px;">
+                                    <span class="initials" style="font-size: 16px;">冯</span>
+                                </div>
+                                <span>冯云宏</span>
+                            </div>
+                        </td>
+                        <td>男</td>
+                        <td>人工智能2班</td>
+                        <td>人工智能</td>
+                        <td>13800138010</td>
+                        <td>fengyunhong@example.com</td>
+                        <td><span class="badge bg-warning">休学</span></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="#" class="btn btn-outline-primary" title="编辑">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-info" title="查看">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" title="删除">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if pagination and pagination.pages > 1 %}
+    <div class="card-footer bg-white">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-0">
+                <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('admin.students', page=pagination.prev_num, q=request.args.get('q', ''), class_id=request.args.get('class_id', ''), status=request.args.get('status', '')) if pagination.has_prev else '#' }}">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                
+                {% for p in pagination.iter_pages() %}
+                    {% if p %}
+                        {% if p == pagination.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ p }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin.students', page=p, q=request.args.get('q', ''), class_id=request.args.get('class_id', ''), status=request.args.get('status', '')) }}">{{ p }}</a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('admin.students', page=pagination.next_num, q=request.args.get('q', ''), class_id=request.args.get('class_id', ''), status=request.args.get('status', '')) if pagination.has_next else '#' }}">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<!-- 数据统计卡片 -->
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">总学生数</h6>
+                        <h3 class="mb-0">10</h3>
+                    </div>
+                    <div class="bg-primary text-white rounded-circle p-3">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">在读学生</h6>
+                        <h3 class="mb-0">7</h3>
+                    </div>
+                    <div class="bg-success text-white rounded-circle p-3">
+                        <i class="fas fa-user-check fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">今日新增</h6>
+                        <h3 class="mb-0">1</h3>
+                    </div>
+                    <div class="bg-info text-white rounded-circle p-3">
+                        <i class="fas fa-user-plus fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // 页面加载完成后初始化数据
+    document.addEventListener('DOMContentLoaded', function() {
+        // 更新统计数据
+        updateStatistics();
+        
+        // 初始化表格数据
+        if (document.querySelector('tbody tr td').textContent.trim() === '没有找到符合条件的学生') {
+            showMockData();
+        }
+    });
+
+    // 更新统计数据
+    function updateStatistics() {
+        const totalStudents = 10;
+        const activeStudents = 7;
+        const newToday = 1;
+
+        document.querySelector('.col-md-4:nth-child(1) h3').textContent = totalStudents;
+        document.querySelector('.col-md-4:nth-child(2) h3').textContent = activeStudents;
+        document.querySelector('.col-md-4:nth-child(3) h3').textContent = newToday;
+    }
+
+    // 显示模拟数据
+    function showMockData() {
+        const tbody = document.querySelector('tbody');
+        if (!tbody) return;
+
+        // 清空现有内容
+        tbody.innerHTML = '';
+        
+        // 添加模拟数据
+        const mockStudents = [
+            {id: '2024001', name: '杜聪', gender: '男', class: '计算机科学与技术1班', major: '计算机科学与技术', phone: '13800138001', email: 'ducong@example.com', status: 'active'},
+            {id: '2024002', name: '蔡瑶', gender: '女', class: '软件工程2班', major: '软件工程', phone: '13800138002', email: 'caiyao@example.com', status: 'active'},
+            {id: '2024003', name: '雷宇宁', gender: '男', class: '信息安全3班', major: '信息安全', phone: '13800138003', email: 'leiyuning@example.com', status: 'active'},
+            {id: '2024004', name: '于睿', gender: '男', class: '数据科学1班', major: '数据科学', phone: '13800138004', email: 'yurui@example.com', status: 'suspended'},
+            {id: '2024005', name: '唐诗涵', gender: '女', class: '人工智能2班', major: '人工智能', phone: '13800138005', email: 'tangshihan@example.com', status: 'active'},
+            {id: '2024006', name: '邓云熙', gender: '男', class: '计算机科学与技术1班', major: '计算机科学与技术', phone: '13800138006', email: 'dengyunxi@example.com', status: 'graduated'},
+            {id: '2024007', name: '常嘉伦', gender: '男', class: '软件工程2班', major: '软件工程', phone: '13800138007', email: 'changjialun@example.com', status: 'active'},
+            {id: '2024008', name: '魏晓明', gender: '男', class: '信息安全3班', major: '信息安全', phone: '13800138008', email: 'weixiaoming@example.com', status: 'active'},
+            {id: '2024009', name: '孟晓彤', gender: '女', class: '数据科学1班', major: '数据科学', phone: '13800138009', email: 'mengxiaotong@example.com', status: 'active'},
+            {id: '2024010', name: '冯云宏', gender: '男', class: '人工智能2班', major: '人工智能', phone: '13800138010', email: 'fengyunhong@example.com', status: 'suspended'}
+        ];
+
+        mockStudents.forEach(student => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${student.id}</td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-circle me-2" style="width: 32px; height: 32px;">
+                            <span class="initials" style="font-size: 16px;">${student.name[0]}</span>
+                        </div>
+                        <span>${student.name}</span>
+                    </div>
+                </td>
+                <td>${student.gender}</td>
+                <td>${student.class}</td>
+                <td>${student.major}</td>
+                <td>${student.phone}</td>
+                <td>${student.email}</td>
+                <td>
+                    <span class="badge bg-${student.status === 'active' ? 'success' : student.status === 'suspended' ? 'warning' : 'info'}">
+                        ${student.status === 'active' ? '在读' : student.status === 'suspended' ? '休学' : '已毕业'}
+                    </span>
+                </td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <a href="#" class="btn btn-outline-primary" title="编辑">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-info" title="查看">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <button type="button" class="btn btn-outline-danger" title="删除">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+</script>
+{% endblock %} 

@@ -1,0 +1,502 @@
+{% extends 'admin/admin_layout.html' %}
+
+{% block title %}素养报告详情 - {{ settings.get('site_name', '校园综合管理平台') }}{% endblock %}
+
+{% block css %}
+{{ super() }}
+<style>
+    .report-content {
+        line-height: 1.8;
+    }
+    
+    /* 移动设备样式 */
+    .mobile-device {
+        padding: 10px;
+        background-color: #f8f9fa;
+    }
+    
+    .device-frame {
+        position: relative;
+        width: 100%;
+        height: 600px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    /* 移动端全屏样式 */
+    .fullscreen-mobile {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 9999;
+        background-color: rgba(0,0,0,0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .fullscreen-mobile iframe {
+        width: 375px;
+        height: 80vh;
+        max-height: 800px;
+        border: 10px solid #222;
+        border-radius: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-file-alt me-2 text-primary"></i> 素养报告详情
+        </h2>
+        <a href="{{ url_for('system.literacy_reports') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> 返回报告列表
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ report.title }}</h5>
+                    <div>
+                        {% if report.report_type == 'comprehensive' %}
+                            <span class="badge bg-success">综合素养评估</span>
+                        {% elif report.report_type == 'professional' %}
+                            <span class="badge bg-info">专业能力评估</span>
+                        {% elif report.report_type == 'social' %}
+                            <span class="badge bg-warning">社会实践评估</span>
+                        {% elif report.report_type == 'innovation' %}
+                            <span class="badge bg-primary">创新能力评估</span>
+                        {% else %}
+                            <span class="badge bg-secondary">其他评估</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div>
+                            <span class="text-muted">报告日期:</span> {{ report.report_date.strftime('%Y年%m月%d日') }}
+                        </div>
+                        <div>
+                            <span class="text-muted">评估对象:</span> {{ report.user.name or report.user.username }}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="mb-4">
+                        <h5 class="mb-3">评估概述</h5>
+                        <div class="p-3 bg-light rounded">
+                            <p>该素养报告是基于学生在校期间的学习情况、能力表现、实践活动和综合素质等方面进行的全面评估。旨在帮助学生了解自身素养发展状况，指导未来发展方向。</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5 class="mb-3">综合评价</h5>
+                        <div class="report-content">
+                            {{ report.content|safe }}
+                        </div>
+                    </div>
+
+                    <!-- 能力雷达图 -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">能力分析</h5>
+                        <div class="row">
+                            <div class="col-md-8 mx-auto">
+                                <canvas id="skillRadarChart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>能力维度</th>
+                                        <th>得分</th>
+                                        <th>平均分</th>
+                                        <th>评价</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>专业素养</td>
+                                        <td>85</td>
+                                        <td>78</td>
+                                        <td><span class="text-success">优秀</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>创新能力</td>
+                                        <td>70</td>
+                                        <td>72</td>
+                                        <td><span class="text-warning">良好</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>团队协作</td>
+                                        <td>82</td>
+                                        <td>80</td>
+                                        <td><span class="text-success">优秀</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>社会实践</td>
+                                        <td>78</td>
+                                        <td>75</td>
+                                        <td><span class="text-success">良好</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>综合素质</td>
+                                        <td>75</td>
+                                        <td>76</td>
+                                        <td><span class="text-warning">良好</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 证书情况 -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">证书情况</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>证书名称</th>
+                                        <th>类型</th>
+                                        <th>颁发机构</th>
+                                        <th>颁发日期</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if certificates %}
+                                        {% for cert in certificates %}
+                                        <tr>
+                                            <td>{{ cert.name }}</td>
+                                            <td>
+                                                {% if cert.certificate_type == 'professional' %}
+                                                    <span class="badge bg-primary">专业技能</span>
+                                                {% elif cert.certificate_type == 'language' %}
+                                                    <span class="badge bg-success">语言能力</span>
+                                                {% elif cert.certificate_type == 'competition' %}
+                                                    <span class="badge bg-warning">竞赛获奖</span>
+                                                {% elif cert.certificate_type == 'academic' %}
+                                                    <span class="badge bg-info">学术证书</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">其他</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ cert.issuer }}</td>
+                                            <td>{{ cert.issue_date.strftime('%Y-%m-%d') }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="4" class="text-center py-3">暂无证书记录</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="small text-muted">
+                            {% if report.creator %}
+                                创建人: {{ report.creator.name or report.creator.username }} | 
+                            {% else %}
+                                创建人: 系统生成 | 
+                            {% endif %}
+                            创建时间: {{ report.created_at.strftime('%Y-%m-%d %H:%M') }}
+                        </div>
+                        <div>
+                            <a href="#" class="btn btn-primary btn-sm">
+                                <i class="fas fa-download me-1"></i> 下载报告
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- 移动端视图 -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">移动应用预览</h5>
+                    <button class="btn btn-sm btn-light" id="toggleFullscreen">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="mobile-device">
+                        <div class="device-frame">
+                            <iframe id="mobilePreview" src="/static/mobile_app/School_Security_Platform/page/SuYang.html?studentName={{ report.user.name|urlencode }}&sid={{ report.user.id }}" width="100%" height="600" frameborder="0"></iframe>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white">
+                    <div class="d-flex justify-content-between">
+                        <button class="btn btn-outline-primary btn-sm" id="refreshFrame">
+                            <i class="fas fa-sync-alt me-1"></i> 刷新
+                        </button>
+                        <a href="/static/mobile_app/School_Security_Platform/page/SuYang.html?studentName={{ report.user.name|urlencode }}&sid={{ report.user.id }}" target="_blank" class="btn btn-primary btn-sm">
+                            <i class="fas fa-external-link-alt me-1"></i> 新窗口打开
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 发展建议 -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">发展建议</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6><i class="fas fa-lightbulb me-2 text-warning"></i>专业素养</h6>
+                        <p class="small">继续深化专业知识学习，积极参与实践项目，建议进一步拓展跨学科知识面。</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6><i class="fas fa-lightbulb me-2 text-warning"></i>创新能力</h6>
+                        <p class="small">参与更多创新创业活动，培养批判性思维，建议选修创新思维相关课程。</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6><i class="fas fa-lightbulb me-2 text-warning"></i>团队协作</h6>
+                        <p class="small">团队协作能力表现良好，建议在团队中尝试更多领导角色，提升组织协调能力。</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6><i class="fas fa-lightbulb me-2 text-warning"></i>社会实践</h6>
+                        <p class="small">积极参与社会实践活动，可以考虑参加志愿服务或社会调研项目，丰富社会经验。</p>
+                    </div>
+                    <div>
+                        <h6><i class="fas fa-lightbulb me-2 text-warning"></i>综合素质</h6>
+                        <p class="small">关注人文艺术熏陶，培养良好阅读习惯，建议参与更多文化交流活动。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 成长曲线 -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">成长曲线</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="growthChart" width="100%" height="220"></canvas>
+                    <div class="text-center mt-3">
+                        <small class="text-muted">近三年素养能力变化趋势</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 相关资源 -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">推荐资源</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">创新思维训练</h6>
+                                <small class="text-primary">课程</small>
+                            </div>
+                            <small class="text-muted">提升创新能力的在线课程</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">领导力与团队管理</h6>
+                                <small class="text-primary">讲座</small>
+                            </div>
+                            <small class="text-muted">提升团队协作与领导能力</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">专业前沿讲座</h6>
+                                <small class="text-primary">视频</small>
+                            </div>
+                            <small class="text-muted">了解专业领域最新发展动态</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">志愿服务指南</h6>
+                                <small class="text-primary">文档</small>
+                            </div>
+                            <small class="text-muted">社会实践与志愿服务参与指南</small>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<!-- 图表脚本 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // 能力雷达图
+    document.addEventListener('DOMContentLoaded', function() {
+        var ctx = document.getElementById('skillRadarChart').getContext('2d');
+        var skillRadarChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['专业素养', '创新能力', '团队协作', '社会实践', '综合素质'],
+                datasets: [{
+                    label: '个人能力',
+                    data: [85, 70, 82, 78, 75],
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                    pointHoverRadius: 5
+                }, {
+                    label: '专业平均',
+                    data: [78, 72, 80, 75, 76],
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+                    pointHoverRadius: 5
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        angleLines: {
+                            display: true
+                        },
+                        suggestedMin: 50,
+                        suggestedMax: 100
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+        
+        // 成长曲线图
+        var growthCtx = document.getElementById('growthChart').getContext('2d');
+        var growthChart = new Chart(growthCtx, {
+            type: 'line',
+            data: {
+                labels: ['2023年春', '2023年秋', '2024年春', '2024年秋', '2025年春'],
+                datasets: [{
+                    label: '综合素质',
+                    data: [65, 68, 72, 75, 80],
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 60,
+                        max: 100
+                    }
+                }
+            }
+        });
+        
+        // 移动端预览功能
+        const toggleFullscreenBtn = document.getElementById('toggleFullscreen');
+        const refreshFrameBtn = document.getElementById('refreshFrame');
+        const iframe = document.getElementById('mobilePreview');
+        let isFullscreen = false;
+        
+        if (toggleFullscreenBtn && iframe) {
+            // 通过postMessage传递数据到iframe
+            iframe.onload = function() {
+                // 准备要传递的数据
+                const reportData = {
+                    userId: "{{ report.user_id }}",
+                    reportId: "{{ report.id }}",
+                    name: "{{ report.user.name or report.user.username }}",
+                    title: "{{ report.title }}",
+                    content: "{{ report.content|safe|striptags|replace('\n', ' ')|replace('\"', '\\\"') }}"
+                };
+                
+                // 1秒后发送消息（等待iframe完全加载）
+                setTimeout(function() {
+                    try {
+                        iframe.contentWindow.postMessage(JSON.stringify({
+                            type: 'reportData',
+                            data: reportData
+                        }), '*');
+                        console.log('Data sent to mobile view:', reportData);
+                    } catch(e) {
+                        console.error('Error sending data to iframe:', e);
+                    }
+                }, 1000);
+            };
+        
+            toggleFullscreenBtn.addEventListener('click', function() {
+                const mobileDevice = iframe.closest('.mobile-device');
+                const cardBody = iframe.closest('.card-body');
+                
+                if (!isFullscreen) {
+                    // 全屏显示
+                    cardBody.style.position = 'fixed';
+                    cardBody.style.top = '0';
+                    cardBody.style.left = '0';
+                    cardBody.style.width = '100%';
+                    cardBody.style.height = '100%';
+                    cardBody.style.zIndex = '9999';
+                    cardBody.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+                    cardBody.style.display = 'flex';
+                    cardBody.style.alignItems = 'center';
+                    cardBody.style.justifyContent = 'center';
+                    
+                    iframe.style.width = '375px';
+                    iframe.style.height = '80vh';
+                    iframe.style.maxHeight = '800px';
+                    iframe.style.border = '10px solid #222';
+                    iframe.style.borderRadius = '20px';
+                    
+                    toggleFullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                } else {
+                    // 恢复正常显示
+                    cardBody.style.position = '';
+                    cardBody.style.top = '';
+                    cardBody.style.left = '';
+                    cardBody.style.width = '';
+                    cardBody.style.height = '';
+                    cardBody.style.zIndex = '';
+                    cardBody.style.backgroundColor = '';
+                    cardBody.style.display = '';
+                    cardBody.style.alignItems = '';
+                    cardBody.style.justifyContent = '';
+                    
+                    iframe.style.width = '100%';
+                    iframe.style.height = '600px';
+                    iframe.style.border = 'none';
+                    iframe.style.borderRadius = '0';
+                    
+                    toggleFullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                }
+                
+                isFullscreen = !isFullscreen;
+            });
+        }
+        
+        if (refreshFrameBtn && iframe) {
+            refreshFrameBtn.addEventListener('click', function() {
+                iframe.src = iframe.src;
+            });
+        }
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,192 @@
+{% extends 'admin/admin_layout.html' %}
+
+{% block title %}申请素养证书 - {{ settings.get('site_name', '校园综合管理平台') }}{% endblock %}
+
+{% block css %}
+{{ super() }}
+<style>
+    .card {
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        border: none;
+    }
+    .form-control, .form-select {
+        border-radius: 6px;
+        padding: 10px 15px;
+    }
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+    }
+    .required:after {
+        content: "*";
+        color: #dc3545;
+        margin-left: 4px;
+    }
+    .blockchain-toggle {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 20px;
+        border-left: 4px solid #0d6efd;
+    }
+    .blockchain-info {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    .preview-container {
+        max-width: 100%;
+        height: 200px;
+        border: 2px dashed #dee2e6;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 10px;
+        overflow: hidden;
+    }
+    .preview-container img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="fas fa-plus-circle me-2 text-primary"></i> 申请素养证书
+        </h2>
+        <div>
+            <a href="{{ url_for('system.literacy_certificates') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> 返回证书列表
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-4">
+            <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h4 class="mb-3">证书基本信息</h4>
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label required">证书名称</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="certificate_type" class="form-label required">证书类型</label>
+                            <select class="form-select" id="certificate_type" name="certificate_type" required>
+                                <option value="">-- 请选择证书类型 --</option>
+                                <option value="language">语言能力</option>
+                                <option value="professional">专业能力</option>
+                                <option value="competition">竞赛获奖</option>
+                                <option value="skill">技能证书</option>
+                                <option value="other">其他证书</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="student_id" class="form-label required">持有人</label>
+                            <select class="form-select" id="student_id" name="student_id" required>
+                                <option value="">-- 请选择持有人 --</option>
+                                {% for student in students %}
+                                <option value="{{ student.id }}">{{ student.name }} ({{ student.student_id }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="issuer" class="form-label required">颁发机构</label>
+                            <input type="text" class="form-control" id="issuer" name="issuer" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="issue_date" class="form-label">颁发日期</label>
+                            <input type="date" class="form-control" id="issue_date" name="issue_date">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="certificate_no" class="form-label">证书编号</label>
+                            <input type="text" class="form-control" id="certificate_no" name="certificate_no">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h4 class="mb-3">证书详细信息</h4>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">证书描述</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" placeholder="请详细描述此证书的内容、获得条件等相关信息"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="certificate_image" class="form-label">证书图片</label>
+                            <input type="file" class="form-control" id="certificate_image" name="certificate_image" accept="image/*">
+                            <div class="preview-container mt-2" id="imagePreview">
+                                <span class="text-muted">预览区域</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="blockchain-toggle">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="enable_blockchain" name="enable_blockchain" checked>
+                        <label class="form-check-label" for="enable_blockchain">
+                            <strong>启用区块链技术保护此证书</strong>
+                        </label>
+                    </div>
+                    
+                    <div class="blockchain-info">
+                        <p><i class="fas fa-info-circle me-2 text-primary"></i> 启用区块链技术将为您的证书提供以下好处：</p>
+                        <ul>
+                            <li>证书信息将被安全记录在区块链上，不可篡改</li>
+                            <li>任何人可以通过区块链验证证书的真实性</li>
+                            <li>证书将附带唯一的数字签名和验证二维码</li>
+                            <li>提升证书的公信力和认可度</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="mt-4 text-end">
+                    <button type="button" class="btn btn-outline-secondary me-2" onclick="window.history.back()">取消</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-1"></i> 提交申请
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 图片预览功能
+    const imageInput = document.getElementById('certificate_image');
+    const imagePreview = document.getElementById('imagePreview');
+    
+    imageInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                imagePreview.innerHTML = `<img src="${e.target.result}" alt="证书预览">`;
+            }
+            
+            reader.readAsDataURL(this.files[0]);
+        } else {
+            imagePreview.innerHTML = `<span class="text-muted">预览区域</span>`;
+        }
+    });
+});
+</script>
+{% endblock %} 

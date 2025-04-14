@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block title %}导入学生 - 校园管理系统{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between mb-4">
+        <h2 class="mb-0"><i class="fas fa-file-import me-2"></i>批量导入学生</h2>
+        <a href="{{ url_for('admin.students') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>返回学生列表
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">上传文件</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" action="{{ url_for('admin.import_students') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-4">
+                            <label for="file" class="form-label">选择Excel或CSV文件</label>
+                            <input class="form-control" type="file" id="file" name="file" accept=".xlsx,.xls,.csv" required>
+                            <div class="form-text text-muted">支持.xlsx、.xls和.csv格式的文件</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="skip_header" name="skip_header" checked>
+                                <label class="form-check-label" for="skip_header">
+                                    跳过第一行（表头）
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="auto_create_class" name="auto_create_class" checked>
+                                <label class="form-check-label" for="auto_create_class">
+                                    自动创建不存在的班级
+                                </label>
+                                <div class="form-text text-muted">启用后，如发现班级ID不存在，系统将自动创建临时班级</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">数据处理选项</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="duplicate_handling" id="update_existing" value="update" checked>
+                                <label class="form-check-label" for="update_existing">
+                                    更新已存在的记录（按学号匹配）
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="duplicate_handling" id="skip_existing" value="skip">
+                                <label class="form-check-label" for="skip_existing">
+                                    跳过已存在的记录（仅导入新记录）
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="duplicate_handling" id="fail_on_duplicate" value="fail">
+                                <label class="form-check-label" for="fail_on_duplicate">
+                                    发现重复记录时停止导入
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload me-1"></i>开始导入
+                            </button>
+                            <a href="{{ url_for('admin.students') }}" class="btn btn-outline-secondary">取消</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">导入说明</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>文件要求：</h6>
+                        <ul>
+                            <li>支持Excel(.xlsx, .xls)和CSV(.csv)格式</li>
+                            <li>文件大小不超过5MB</li>
+                            <li>建议数据量不超过1000条</li>
+                        </ul>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6>列顺序(必填*）：</h6>
+                        <ol class="small">
+                            <li><strong>学号* (student_id)</strong></li>
+                            <li><strong>姓名* (name)</strong></li>
+                            <li><strong>性别* (gender)</strong> - 值: male/female/other</li>
+                            <li><strong>生日 (birthday)</strong> - 格式: YYYY-MM-DD</li>
+                            <li><strong>班级ID* (class_id)</strong> - 系统中存在的班级ID</li>
+                            <li><strong>邮箱* (email)</strong></li>
+                            <li><strong>密码 (password)</strong> - 留空则随机生成</li>
+                            <li><strong>电话 (phone)</strong></li>
+                            <li><strong>状态 (status)</strong> - 值: active/suspended/graduated/transferred</li>
+                            <li><strong>地址 (address)</strong></li>
+                            <li><strong>简介 (bio)</strong></li>
+                        </ol>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6>提示：</h6>
+                        <ul class="small">
+                            <li>导入前建议先下载模板并填写</li>
+                            <li>导入过程中如遇错误，系统会提供错误报告</li>
+                            <li>导入成功后可在学生列表查看新导入的学生</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{{ url_for('admin.download_student_template') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-download me-1"></i>下载导入模板
+                        </a>
+                        <a href="#" class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#helpModal">
+                            <i class="fas fa-question-circle me-1"></i>查看详细说明
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 帮助说明模态框 -->
+<div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="helpModalLabel">导入说明</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. 下载并填写模板</h6>
+                <ul>
+                    <li>点击"下载导入模板"按钮获取Excel模板文件</li>
+                    <li>按照模板格式填写学生信息</li>
+                    <li>必填字段标有星号(*)</li>
+                </ul>
+
+                <h6>2. 字段说明</h6>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>字段</th>
+                            <th>说明</th>
+                            <th>示例</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>学号*</td>
+                            <td>学生唯一标识</td>
+                            <td>2024001</td>
+                        </tr>
+                        <tr>
+                            <td>姓名*</td>
+                            <td>学生姓名</td>
+                            <td>张三</td>
+                        </tr>
+                        <tr>
+                            <td>性别*</td>
+                            <td>male/female/other</td>
+                            <td>male</td>
+                        </tr>
+                        <tr>
+                            <td>生日</td>
+                            <td>格式：YYYY-MM-DD</td>
+                            <td>2000-01-01</td>
+                        </tr>
+                        <tr>
+                            <td>班级ID*</td>
+                            <td>系统中已存在的班级ID</td>
+                            <td>1</td>
+                        </tr>
+                        <tr>
+                            <td>邮箱*</td>
+                            <td>用于登录和通知</td>
+                            <td>zhangsan@example.com</td>
+                        </tr>
+                        <tr>
+                            <td>密码</td>
+                            <td>留空则生成默认密码</td>
+                            <td>password123</td>
+                        </tr>
+                        <tr>
+                            <td>电话</td>
+                            <td>联系电话</td>
+                            <td>13800138000</td>
+                        </tr>
+                        <tr>
+                            <td>状态</td>
+                            <td>active/suspended/graduated/transferred</td>
+                            <td>active</td>
+                        </tr>
+                        <tr>
+                            <td>地址</td>
+                            <td>学生住址</td>
+                            <td>北京市海淀区</td>
+                        </tr>
+                        <tr>
+                            <td>简介</td>
+                            <td>学生简介</td>
+                            <td>计算机专业学生</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h6>3. 注意事项</h6>
+                <ul>
+                    <li>文件大小不要超过5MB</li>
+                    <li>建议一次导入不超过1000条记录</li>
+                    <li>如果学号已存在，可以选择更新、跳过或停止导入</li>
+                    <li>导入完成后会显示详细的导入结果</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

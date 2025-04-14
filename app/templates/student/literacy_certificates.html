@@ -1,0 +1,318 @@
+{% extends 'student/student_layout.html' %}
+
+{% block title %}我的素养证书 - 智证融合{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">我的素养证书</h1>
+        <a href="{{ url_for('student.apply_certificate') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> 申请新证书
+        </a>
+    </div>
+
+    <!-- 证书统计卡片 - 美化版 -->
+    <div class="row mb-4 fade-in">
+        <div class="col-xl-3 col-md-6">
+            <div class="card mb-4 border-start border-5 border-primary h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
+                            <i class="fas fa-certificate fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1">证书总数</h6>
+                        <h2 class="mb-0 display-6">{{ certificates|length }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card mb-4 border-start border-5 border-success h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="bg-success bg-opacity-10 p-3 rounded-circle">
+                            <i class="fas fa-check-circle fa-2x text-success"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1">已通过</h6>
+                        <h2 class="mb-0 display-6">{{ certificates|selectattr('status', 'equalto', 'approved')|list|length }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card mb-4 border-start border-5 border-warning h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle">
+                            <i class="fas fa-clock fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1">审核中</h6>
+                        <h2 class="mb-0 display-6">{{ certificates|selectattr('status', 'equalto', 'pending')|list|length }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card mb-4 border-start border-5 border-info h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="bg-info bg-opacity-10 p-3 rounded-circle">
+                            <i class="fas fa-link fa-2x text-info"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1">区块链证书</h6>
+                        <h2 class="mb-0 display-6">{{ certificates|selectattr('blockchain_enabled', 'equalto', true)|list|length }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 证书列表 - 美化版 -->
+    <div class="card fade-in" style="animation-delay: 0.1s;">
+        <div class="card-header d-flex justify-content-between align-items-center py-3">
+            <h5 class="card-title mb-0">我的素养证书列表</h5>
+            <a href="{{ url_for('student.apply_certificate') }}" class="btn btn-sm btn-primary">
+                <i class="fas fa-plus me-1"></i> 申请新证书
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th class="border-0">证书名称</th>
+                            <th class="border-0">类型</th>
+                            <th class="border-0">颁发机构</th>
+                            <th class="border-0">颁发日期</th>
+                            <th class="border-0">状态</th>
+                            <th class="border-0">区块链</th>
+                            <th class="border-0 text-end">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cert in certificates %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="certificate-icon me-3">
+                                        {% if cert.certificate_type == 'language' %}
+                                            <i class="fas fa-language text-primary fa-lg"></i>
+                                        {% elif cert.certificate_type == 'professional' %}
+                                            <i class="fas fa-briefcase text-success fa-lg"></i>
+                                        {% elif cert.certificate_type == 'competition' %}
+                                            <i class="fas fa-trophy text-warning fa-lg"></i>
+                                        {% elif cert.certificate_type == 'skill' %}
+                                            <i class="fas fa-tools text-info fa-lg"></i>
+                                        {% else %}
+                                            <i class="fas fa-certificate text-secondary fa-lg"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ cert.name }}</h6>
+                                        <small class="text-muted">编号: {{ cert.certificate_no or '无' }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge rounded-pill 
+                                    {% if cert.certificate_type == 'language' %}
+                                        bg-primary bg-opacity-10 text-primary
+                                    {% elif cert.certificate_type == 'professional' %}
+                                        bg-success bg-opacity-10 text-success
+                                    {% elif cert.certificate_type == 'competition' %}
+                                        bg-warning bg-opacity-10 text-warning
+                                    {% elif cert.certificate_type == 'skill' %}
+                                        bg-info bg-opacity-10 text-info
+                                    {% else %}
+                                        bg-secondary bg-opacity-10 text-secondary
+                                    {% endif %}">
+                                    {% if cert.certificate_type == 'language' %}
+                                        语言能力
+                                    {% elif cert.certificate_type == 'professional' %}
+                                        专业技能
+                                    {% elif cert.certificate_type == 'competition' %}
+                                        竞赛获奖
+                                    {% elif cert.certificate_type == 'skill' %}
+                                        技能认证
+                                    {% else %}
+                                        其他
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td>{{ cert.issuer }}</td>
+                            <td>{{ cert.issue_date.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                {% if cert.status == 'pending' %}
+                                    <span class="badge rounded-pill bg-warning">
+                                        <i class="fas fa-clock me-1"></i> 审核中
+                                    </span>
+                                {% elif cert.status == 'approved' %}
+                                    <span class="badge rounded-pill bg-success">
+                                        <i class="fas fa-check me-1"></i> 已通过
+                                    </span>
+                                {% elif cert.status == 'rejected' %}
+                                    <span class="badge rounded-pill bg-danger">
+                                        <i class="fas fa-times me-1"></i> 已拒绝
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if cert.blockchain_enabled and cert.blockchain_certificate_id %}
+                                    <span class="badge rounded-pill bg-info">
+                                        <i class="fas fa-link me-1"></i> 已上链
+                                    </span>
+                                {% else %}
+                                    <span class="badge rounded-pill bg-secondary">
+                                        <i class="fas fa-unlink me-1"></i> 未上链
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('student.view_certificate', id=cert.id) }}" class="btn btn-light" title="查看">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if cert.blockchain_enabled and cert.blockchain_certificate_id %}
+                                    <a href="{{ cert.blockchain_verification_url }}" class="btn btn-light text-info" title="验证" target="_blank">
+                                        <i class="fas fa-check-circle"></i>
+                                    </a>
+                                    <button class="btn btn-light text-success" onclick="shareCertificate('{{ cert.id }}')" title="分享">
+                                        <i class="fas fa-share-alt"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="empty-state fade-in">
+                                    <div class="mb-3">
+                                        <div class="bg-light p-4 rounded-circle d-inline-flex align-items-center justify-content-center">
+                                            <i class="fas fa-certificate fa-3x text-muted"></i>
+                                        </div>
+                                    </div>
+                                    <h5 class="text-muted">暂无素养证书</h5>
+                                    <p class="text-muted">申请您的第一个素养证书，开启成长之旅</p>
+                                    <a href="{{ url_for('student.apply_certificate') }}" class="btn btn-primary mt-2">
+                                        <i class="fas fa-plus me-1"></i> 申请新证书
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 分享模态框 - 美化版 -->
+<div class="modal fade" id="shareCertificateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-share-alt me-2"></i> 分享证书</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group mb-4">
+                    <label class="form-label fw-bold">验证链接</label>
+                    <div class="input-group">
+                        <input type="text" id="shareLink" class="form-control" readonly>
+                        <button class="btn btn-outline-primary" onclick="copyShareLink()">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted">通过此链接可以验证证书真伪</small>
+                </div>
+                <div class="text-center mb-4" id="qrCodeContainer">
+                    <div class="bg-light p-3 d-inline-block rounded">
+                        <!-- 二维码将在这里生成 -->
+                    </div>
+                    <p class="mt-2 text-muted">扫描二维码查看证书</p>
+                </div>
+                <div class="d-flex justify-content-center">
+                    <a href="#" id="socialShareWeChat" class="btn btn-outline-success mx-1">
+                        <i class="fab fa-weixin me-1"></i> 微信
+                    </a>
+                    <a href="#" id="socialShareQQ" class="btn btn-outline-primary mx-1">
+                        <i class="fab fa-qq me-1"></i> QQ
+                    </a>
+                    <a href="#" id="socialShareWeibo" class="btn btn-outline-danger mx-1">
+                        <i class="fab fa-weibo me-1"></i> 微博
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/qrcode.js@1.0.0/qrcode.min.js"></script>
+<script>
+function shareCertificate(certificateId) {
+    // 获取证书详情
+    fetch(`/api/certificate/${certificateId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const shareLink = data.certificate.blockchain_verification_url;
+                
+                // 设置分享链接
+                document.getElementById('shareLink').value = shareLink;
+                
+                // 生成二维码
+                const qrContainer = document.getElementById('qrCodeContainer');
+                qrContainer.innerHTML = '';
+                new QRCode(qrContainer, {
+                    text: shareLink,
+                    width: 200,
+                    height: 200,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+                
+                // 设置社交分享链接
+                document.getElementById('socialShareWeChat').setAttribute('data-url', shareLink);
+                document.getElementById('socialShareQQ').href = `https://connect.qq.com/widget/shareqq/index.html?url=${encodeURIComponent(shareLink)}`;
+                document.getElementById('socialShareWeibo').href = `https://service.weibo.com/share/share.php?url=${encodeURIComponent(shareLink)}`;
+                
+                // 显示模态框
+                new bootstrap.Modal(document.getElementById('shareCertificateModal')).show();
+            } else {
+                alert('获取证书信息失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('网络错误');
+        });
+}
+
+function copyShareLink() {
+    const copyText = document.getElementById("shareLink");
+    copyText.select();
+    document.execCommand("copy");
+    
+    // 显示复制成功提示
+    const button = event.target.closest('button');
+    const originalHtml = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i>';
+    setTimeout(() => {
+        button.innerHTML = originalHtml;
+    }, 2000);
+}
+</script>
+{% endblock %}

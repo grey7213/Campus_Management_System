@@ -1,0 +1,602 @@
+{% extends 'admin/admin_layout.html' %}
+
+{% block title %}证书详情 - {{ settings.get('site_name', '校园综合管理平台') }}{% endblock %}
+
+{% block css %}
+{{ super() }}
+<style>
+    .certificate-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .certificate-card {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border: none;
+    }
+    
+    .certificate-header {
+        padding: 2rem;
+        background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+        color: white;
+    }
+    
+    .logo-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 1rem;
+        height: 100px;
+        width: 100px;
+        margin: 0 auto;
+    }
+    
+    .logo-container img {
+        max-height: 80px;
+        max-width: 80px;
+        object-fit: contain;
+    }
+    
+    .certificate-status {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 2;
+    }
+    
+    .certificate-image {
+        max-width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .certificate-info {
+        padding: 2rem;
+    }
+    
+    .certificate-section {
+        margin-bottom: 2rem;
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+    }
+    
+    .info-value {
+        font-size: 1.1rem;
+    }
+    
+    .blockchain-badge {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: #28a745;
+        color: white;
+        border-radius: 30px;
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        z-index: 2;
+    }
+    
+    .blockchain-info {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+    }
+    
+    .blockchain-data {
+        font-family: 'Roboto Mono', monospace;
+        background-color: #e9ecef;
+        border-radius: 5px;
+        padding: 0.75rem;
+        font-size: 0.85rem;
+        word-break: break-all;
+        color: #495057;
+        border: 1px solid #dee2e6;
+        margin: 0.5rem 0;
+        position: relative;
+    }
+    
+    .blockchain-data .copy-btn {
+        position: absolute;
+        right: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    
+    .blockchain-data:hover .copy-btn {
+        opacity: 1;
+    }
+    
+    .hash-display {
+        display: inline-block;
+        font-family: 'Roboto Mono', monospace;
+        background: #f8f9fa;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        border: 1px solid #dee2e6;
+        font-size: 0.9em;
+        color: #495057;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .qr-code-container {
+        background-color: white;
+        padding: 1rem;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    
+    .qr-code-img {
+        max-width: 150px;
+    }
+    
+    .status-pending {
+        background-color: #ffc107;
+    }
+    
+    .status-approved {
+        background-color: #28a745;
+    }
+    
+    .status-rejected {
+        background-color: #dc3545;
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 10px;
+        top: 0;
+        height: 100%;
+        width: 2px;
+        background-color: #dee2e6;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-bottom: 1.5rem;
+    }
+    
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -30px;
+        top: 0;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: #007bff;
+        border: 3px solid white;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+    }
+    
+    .timeline-item.pending::before {
+        background-color: #ffc107;
+    }
+    
+    .timeline-item.approved::before {
+        background-color: #28a745;
+    }
+    
+    .timeline-item.rejected::before {
+        background-color: #dc3545;
+    }
+    
+    .timeline-item.blockchain::before {
+        background-color: #6f42c1;
+    }
+    
+    .timeline-date {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+    }
+    
+    .timeline-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .timeline-content {
+        color: #495057;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="certificate-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3>
+                <i class="fas fa-certificate text-primary me-2"></i>
+                证书详情
+            </h3>
+            <div>
+                <a href="{{ url_for('system.literacy_certificates') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> 返回列表
+                </a>
+                
+                {% if is_admin and certificate.status == 'pending' %}
+                    <div class="btn-group ms-2">
+                        <form method="post" action="{{ url_for('system.approve_certificate', id=certificate.id) }}" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-1"></i> 审核通过
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                            <i class="fas fa-times me-1"></i> 拒绝
+                        </button>
+                    </div>
+                {% endif %}
+                
+                {% if certificate.status == 'approved' and certificate.blockchain_enabled and not certificate.blockchain_certificate_id %}
+                    <form method="post" action="{{ url_for('system.issue_blockchain_certificate', id=certificate.id) }}" class="d-inline ms-2">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fab fa-ethereum me-1"></i> 发布到区块链
+                        </button>
+                    </form>
+                {% endif %}
+                
+                {% if certificate.blockchain_certificate_id %}
+                    <a href="{{ url_for('system.verify_certificate', id=certificate.blockchain_certificate_id) }}" class="btn btn-info ms-2">
+                        <i class="fas fa-shield-alt me-1"></i> 验证证书
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="certificate-card mb-4">
+            <div class="certificate-header position-relative">
+                <div class="certificate-status">
+                    {% if certificate.status == 'pending' %}
+                        <span class="badge bg-warning">
+                            <i class="fas fa-clock me-1"></i>审核中
+                        </span>
+                    {% elif certificate.status == 'approved' %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-check me-1"></i>已通过
+                        </span>
+                    {% elif certificate.status == 'rejected' %}
+                        <span class="badge bg-danger">
+                            <i class="fas fa-times me-1"></i>已拒绝
+                        </span>
+                    {% endif %}
+                </div>
+                
+                <div class="row align-items-center">
+                    <div class="col-md-2">
+                        <div class="logo-container">
+                            <i class="fas fa-award fa-4x text-warning"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-8 text-center">
+                        <h2 class="mb-2">{{ certificate.name }}</h2>
+                        <p class="mb-0 text-light opacity-75">证书编号：{{ certificate.certificate_no }}</p>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        {% if certificate.blockchain_certificate_id %}
+                            <div class="badge bg-warning text-dark p-2">
+                                <i class="fab fa-ethereum me-1"></i>
+                                区块链认证
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="certificate-info">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="certificate-section">
+                            <h4 class="mb-4">基本信息</h4>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="info-label">证书类型</div>
+                                    <div class="info-value">
+                                        {% if certificate.certificate_type == 'language' %}
+                                            <span class="badge bg-primary">语言能力</span>
+                                        {% elif certificate.certificate_type == 'professional' %}
+                                            <span class="badge bg-success">专业能力</span>
+                                        {% elif certificate.certificate_type == 'competition' %}
+                                            <span class="badge bg-warning">竞赛获奖</span>
+                                        {% elif certificate.certificate_type == 'skill' %}
+                                            <span class="badge bg-info">技能证书</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">其他证书</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-label">颁发机构</div>
+                                    <div class="info-value">{{ certificate.issuer }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="info-label">持有者姓名</div>
+                                    <div class="info-value">{{ student.name }}</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-label">学号</div>
+                                    <div class="info-value">{{ student.student_id }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="info-label">颁发日期</div>
+                                    <div class="info-value">{{ certificate.issue_date.strftime('%Y-%m-%d') if certificate.issue_date and certificate.issue_date is not string else (certificate.issue_date[:10] if certificate.issue_date and 'T' in certificate.issue_date else certificate.issue_date) }}</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-label">申请日期</div>
+                                    <div class="info-value">{{ certificate.created_at.strftime('%Y-%m-%d') if certificate.created_at and certificate.created_at is not string else (certificate.created_at[:10] if certificate.created_at and 'T' in certificate.created_at else certificate.created_at) }}</div>
+                                </div>
+                            </div>
+                            
+                            {% if certificate.description %}
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <div class="info-label">证书描述</div>
+                                        <div class="info-value">{{ certificate.description }}</div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if certificate.blockchain_certificate_id %}
+                            <div class="certificate-section position-relative">
+                                <div class="blockchain-badge">
+                                    <i class="fab fa-ethereum me-2"></i> 区块链保护
+                                </div>
+                                <h4 class="mb-4">区块链信息</h4>
+                                <div class="blockchain-info">
+                                    <div class="row mb-3">
+                                        <div class="col-12">
+                                            <div class="info-label">区块链证书ID</div>
+                                            <div class="blockchain-data">
+                                                {{ certificate.blockchain_certificate_id }}
+                                                <button class="btn btn-sm btn-link copy-btn" onclick="copyToClipboard(this)" data-text="{{ certificate.blockchain_certificate_id }}">
+                                                    <i class="far fa-copy"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-12">
+                                            <div class="info-label">交易哈希</div>
+                                            <div class="blockchain-data">
+                                                {{ certificate.blockchain_transaction_hash }}
+                                                <button class="btn btn-sm btn-link copy-btn" onclick="copyToClipboard(this)" data-text="{{ certificate.blockchain_transaction_hash }}">
+                                                    <i class="far fa-copy"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="info-label">数据哈希</div>
+                                            <div class="blockchain-data">
+                                                {{ certificate.blockchain_data_hash }}
+                                                <button class="btn btn-sm btn-link copy-btn" onclick="copyToClipboard(this)" data-text="{{ certificate.blockchain_data_hash }}">
+                                                    <i class="far fa-copy"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="certificate-section">
+                            <h4 class="mb-4">证书状态历史</h4>
+                            <div class="timeline">
+                                <div class="timeline-item pending">
+                                    <div class="timeline-date">{{ certificate.created_at.strftime('%Y-%m-%d') if certificate.created_at and certificate.created_at is not string else (certificate.created_at[:10] if certificate.created_at and 'T' in certificate.created_at else certificate.created_at) }}</div>
+                                    <div class="timeline-title">提交申请</div>
+                                    <div class="timeline-content">证书申请已提交，等待管理员审核。</div>
+                                </div>
+                                
+                                {% if certificate.status == 'approved' or certificate.status == 'rejected' %}
+                                    <div class="timeline-item {% if certificate.status == 'approved' %}approved{% else %}rejected{% endif %}">
+                                        <div class="timeline-date">{{ certificate.updated_at.strftime('%Y-%m-%d') if certificate.updated_at and certificate.updated_at is not string else (certificate.updated_at[:10] if certificate.updated_at and 'T' in certificate.updated_at else certificate.updated_at) }}</div>
+                                        <div class="timeline-title">
+                                            {% if certificate.status == 'approved' %}
+                                                审核通过
+                                            {% else %}
+                                                审核拒绝
+                                            {% endif %}
+                                        </div>
+                                        <div class="timeline-content">
+                                            {% if certificate.status == 'approved' %}
+                                                证书申请已通过审核，证书正式生效。
+                                            {% else %}
+                                                证书申请被拒绝。原因：{{ certificate.rejected_reason or '未提供拒绝理由' }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if certificate.blockchain_certificate_id %}
+                                    <div class="timeline-item blockchain">
+                                        <div class="timeline-date">{{ certificate.blockchain_timestamp.strftime('%Y-%m-%d %H:%M') if certificate.blockchain_timestamp else '未知时间' }}</div>
+                                        <div class="timeline-title">发布到区块链</div>
+                                        <div class="timeline-content">
+                                            证书数据已成功发布到区块链，确保证书真实性和不可篡改性。
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        {% if image_url %}
+                            <div class="certificate-section text-center" style="position: relative; z-index: 10; background: white; padding: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                                <h4 class="mb-4">证书图片</h4>
+                                <img src="{{ url_for('static', filename=image_url) }}?t={{ 'now'|datetime('%Y%m%d%H%M%S') if refresh else '' }}" alt="{{ certificate.name }}" class="certificate-image mb-3" style="display: block; max-width: 100%; height: auto;">
+                                <a href="{{ url_for('static', filename=image_url) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                    <i class="fas fa-eye me-1"></i> 查看原图
+                                </a>
+                                <p class="mt-2">
+                                    <a href="{{ url_for('system_extended.debug_certificate_image', id=certificate.id) }}" class="text-muted small">图片无法显示？点击这里检查</a>
+                                </p>
+                            </div>
+                        {% elif certificate.image_url %}
+                            <div class="certificate-section text-center" style="position: relative; z-index: 10; background: white; padding: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                                <h4 class="mb-4">证书图片</h4>
+                                <img src="{{ url_for('static', filename=certificate.image_url) }}?t={{ 'now'|datetime('%Y%m%d%H%M%S') if refresh else '' }}" alt="{{ certificate.name }}" class="certificate-image mb-3" style="display: block; max-width: 100%; height: auto;">
+                                <a href="{{ url_for('static', filename=certificate.image_url) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                    <i class="fas fa-eye me-1"></i> 查看原图
+                                </a>
+                                <p class="mt-2">
+                                    <a href="{{ url_for('system_extended.debug_certificate_image', id=certificate.id) }}" class="text-muted small">图片无法显示？点击这里检查</a>
+                                </p>
+                            </div>
+                        {% else %}
+                            <div class="certificate-section text-center bg-light p-4 rounded">
+                                <h4 class="mb-3 text-muted">无证书图片</h4>
+                                <p class="text-muted">此证书未上传图片</p>
+                                <a href="{{ url_for('system_extended.debug_certificate_image', id=certificate.id) }}" class="btn btn-sm btn-outline-secondary">修复图片问题</a>
+                            </div>
+                        {% endif %}
+                        
+                        {% if certificate.blockchain_certificate_id and qr_code_data %}
+                            <div class="certificate-section">
+                                <h4 class="mb-4">区块链验证</h4>
+                                <div class="qr-code-container">
+                                    <img src="{{ qr_code_data }}" alt="Verification QR Code" class="qr-code-img mb-3">
+                                    <div class="small text-muted mb-2">扫描二维码验证证书真实性</div>
+                                    <a href="{{ url_for('system.verify_certificate', id=certificate.blockchain_certificate_id) }}" class="btn btn-sm btn-primary" target="_blank">
+                                        <i class="fas fa-shield-alt me-1"></i> 验证证书
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="certificate-section">
+                            <h4 class="mb-4">区块链优势</h4>
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex">
+                                    <div class="me-3 text-primary">
+                                        <i class="fas fa-fingerprint fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">防伪保真</h6>
+                                        <small class="text-muted">每个证书在区块链上都有唯一标识，无法伪造</small>
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex">
+                                    <div class="me-3 text-primary">
+                                        <i class="fas fa-shield-alt fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">不可篡改</h6>
+                                        <small class="text-muted">一旦证书发布到区块链，其内容无法更改</small>
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex">
+                                    <div class="me-3 text-primary">
+                                        <i class="fas fa-globe fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">全球有效</h6>
+                                        <small class="text-muted">任何人在任何地方都可以验证证书的真实性</small>
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex">
+                                    <div class="me-3 text-primary">
+                                        <i class="fas fa-history fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">永久存储</h6>
+                                        <small class="text-muted">证书信息永久存储在区块链上，不会丢失</small>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if is_admin and certificate.status == 'pending' %}
+<!-- 拒绝证书模态框 -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectModalLabel">拒绝证书申请</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{{ url_for('system.reject_certificate', id=certificate.id) }}">
+                <div class="modal-body">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label for="rejected_reason" class="form-label">拒绝原因</label>
+                        <textarea class="form-control" id="rejected_reason" name="rejected_reason" rows="3" required placeholder="请输入拒绝原因，将通知给申请人..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-danger">确认拒绝</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- 添加复制功能的JavaScript -->
+<script>
+function copyToClipboard(button) {
+    const text = button.getAttribute('data-text');
+    navigator.clipboard.writeText(text).then(() => {
+        // 显示复制成功提示
+        const originalHtml = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i>';
+        setTimeout(() => {
+            button.innerHTML = originalHtml;
+        }, 2000);
+    }).catch(err => {
+        console.error('复制失败:', err);
+    });
+}
+</script>
+{% endblock %} 

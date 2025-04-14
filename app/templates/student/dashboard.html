@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}学生控制面板 - 校园管理系统{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-tachometer-alt mr-2"></i>学生控制面板</h2>
+        <div>
+            <span class="text-muted">今天是：</span><span id="current-datetime"></span>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">我的课程</h6>
+                            <h3 class="mb-0">{{ course_count }}</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-book fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">待完成作业</h6>
+                            <h3 class="mb-0">{{ homework_count }}</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-tasks fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">考勤记录</h6>
+                            <h3 class="mb-0">{{ attendance_count }}</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-clipboard-check fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="mb-3">功能导航</h4>
+    <div class="row">
+        <!-- 我的课程 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-primary-light mx-auto">
+                        <i class="fas fa-book text-white"></i>
+                    </div>
+                    <h5 class="module-title">我的课程</h5>
+                    <p class="card-text">查看我的课程信息和课表</p>
+                    <a href="{{ url_for('student.courses') }}" class="btn btn-sm btn-outline-primary">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 作业管理 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-success-light mx-auto">
+                        <i class="fas fa-tasks text-white"></i>
+                    </div>
+                    <h5 class="module-title">作业管理</h5>
+                    <p class="card-text">查看和提交课程作业</p>
+                    <a href="#" class="btn btn-sm btn-outline-success disabled">即将上线</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 成绩查询 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-info-light mx-auto">
+                        <i class="fas fa-chart-bar text-white"></i>
+                    </div>
+                    <h5 class="module-title">成绩查询</h5>
+                    <p class="card-text">查询各科目成绩和绩点</p>
+                    <a href="{{ url_for('student.grades') }}" class="btn btn-sm btn-outline-info">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 考勤记录 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-warning-light mx-auto">
+                        <i class="fas fa-clipboard-check text-white"></i>
+                    </div>
+                    <h5 class="module-title">考勤记录</h5>
+                    <p class="card-text">查看个人考勤记录</p>
+                    <a href="#" class="btn btn-sm btn-outline-warning disabled">即将上线</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 教学资料 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-danger-light mx-auto">
+                        <i class="fas fa-file-alt text-white"></i>
+                    </div>
+                    <h5 class="module-title">教学资料</h5>
+                    <p class="card-text">下载课程教学资料</p>
+                    <a href="#" class="btn btn-sm btn-outline-danger disabled">即将上线</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 选课系统 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-purple-light mx-auto">
+                        <i class="fas fa-list-alt text-white"></i>
+                    </div>
+                    <h5 class="module-title">选课系统</h5>
+                    <p class="card-text">进行课程选择和退选</p>
+                    <a href="{{ url_for('student.courses') }}" class="btn btn-sm btn-outline-primary">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 个人信息 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-secondary mx-auto">
+                        <i class="fas fa-user-cog text-white"></i>
+                    </div>
+                    <h5 class="module-title">个人信息</h5>
+                    <p class="card-text">查看和修改个人信息</p>
+                    <a href="{{ url_for('student.profile') }}" class="btn btn-sm btn-outline-secondary">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 素养证书 -->
+        <div class="col-md-4 col-lg-3 mb-4">
+            <div class="card h-100 feature-card">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-warning-soft">
+                        <i class="fas fa-certificate"></i>
+                    </div>
+                    <h5 class="card-title mt-3">素养证书</h5>
+                    <p class="card-text text-muted">查看和申请个人素养证书</p>
+                    <a href="{{ url_for('student.literacy_certificates') }}" class="btn btn-primary btn-sm">进入</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    function updateDateTime() {
+        const now = new Date();
+        const options = { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric', 
+            weekday: 'long',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        };
+        document.getElementById('current-datetime').textContent = now.toLocaleString('zh-CN', options);
+    }
+    
+    // 立即更新一次
+    updateDateTime();
+    
+    // 每秒更新一次
+    setInterval(updateDateTime, 1000);
+</script>
+{% endblock %}

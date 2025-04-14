@@ -1,0 +1,371 @@
+{% extends 'admin/admin_layout.html' %}
+
+{% block title %}素养证书 - {{ settings.get('site_name', '校园综合管理平台') }}{% endblock %}
+
+{% block css %}
+{{ super() }}
+<style>
+    /* 美化UI样式 */
+    .card {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        border: none;
+    }
+    .card-header {
+        background-color: #fff;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .badge {
+        font-weight: 500;
+        padding: 0.5em 0.8em;
+        border-radius: 6px;
+    }
+    .btn {
+        border-radius: 6px;
+    }
+    .table thead th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(0,123,255,0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="fas fa-certificate me-2 text-primary"></i> 素养证书
+        </h2>
+        <div>
+            <a href="{{ url_for('system.apply_certificate') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> 申请证书
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">证书总数</h6>
+                            <h2 class="mb-0">{{ certificates|length }}</h2>
+                        </div>
+                        <i class="fas fa-certificate fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">已通过</h6>
+                            <h2 class="mb-0">{{ certificates|selectattr('status', 'equalto', 'approved')|list|length }}</h2>
+                        </div>
+                        <i class="fas fa-check-circle fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">审核中</h6>
+                            <h2 class="mb-0">{{ certificates|selectattr('status', 'equalto', 'pending')|list|length }}</h2>
+                        </div>
+                        <i class="fas fa-clock fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-danger text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">已拒绝</h6>
+                            <h2 class="mb-0">{{ certificates|selectattr('status', 'equalto', 'rejected')|list|length }}</h2>
+                        </div>
+                        <i class="fas fa-times-circle fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <form action="{{ url_for('system.literacy_certificates') }}" method="GET" class="d-flex flex-wrap gap-2 align-items-center">
+                        <div class="input-group" style="width: auto;">
+                            <input type="text" name="search" class="form-control" placeholder="搜索证书..." value="{{ request.args.get('search', '') }}">
+                            <button class="btn btn-outline-secondary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+
+                        <select name="certificate_type" class="form-select" style="width: auto;">
+                            <option value="">所有类型</option>
+                            <option value="language" {% if request.args.get('certificate_type') == 'language' %}selected{% endif %}>语言能力</option>
+                            <option value="professional" {% if request.args.get('certificate_type') == 'professional' %}selected{% endif %}>专业能力</option>
+                            <option value="competition" {% if request.args.get('certificate_type') == 'competition' %}selected{% endif %}>竞赛获奖</option>
+                            <option value="skill" {% if request.args.get('certificate_type') == 'skill' %}selected{% endif %}>技能证书</option>
+                            <option value="other" {% if request.args.get('certificate_type') == 'other' %}selected{% endif %}>其他证书</option>
+                        </select>
+
+                        <select name="status" class="form-select" style="width: auto;">
+                            <option value="">所有状态</option>
+                            <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>审核中</option>
+                            <option value="approved" {% if request.args.get('status') == 'approved' %}selected{% endif %}>已通过</option>
+                            <option value="rejected" {% if request.args.get('status') == 'rejected' %}selected{% endif %}>已拒绝</option>
+                        </select>
+
+                        <button type="submit" class="btn btn-primary">筛选</button>
+                        <a href="{{ url_for('system.literacy_certificates') }}" class="btn btn-outline-secondary">重置</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card shadow-sm mb-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>证书名称</th>
+                        <th>持有人</th>
+                        <th>证书类型</th>
+                        <th>颁发机构</th>
+                        <th>颁发日期</th>
+                        <th>状态</th>
+                        <th>证书图片</th>
+                        <th>申请时间</th>
+                        <th width="120">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if certificates %}
+                        {% for cert in certificates %}
+                        <tr>
+                            <td>{{ cert.id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="certificate-icon me-2">
+                                        {% if cert.certificate_type == 'language' %}
+                                            <i class="fas fa-language text-primary"></i>
+                                        {% elif cert.certificate_type == 'professional' %}
+                                            <i class="fas fa-briefcase text-success"></i>
+                                        {% elif cert.certificate_type == 'competition' %}
+                                            <i class="fas fa-trophy text-warning"></i>
+                                        {% elif cert.certificate_type == 'skill' %}
+                                            <i class="fas fa-tools text-info"></i>
+                                        {% else %}
+                                            <i class="fas fa-certificate text-secondary"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        {{ cert.name }}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if cert.student_name %}
+                                    <span class="badge rounded-pill bg-dark bg-opacity-10 text-dark">
+                                        <i class="fas fa-user me-1"></i> {{ cert.student_name }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary">
+                                        <i class="fas fa-user me-1"></i> 未知
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if cert.certificate_type == 'language' %}
+                                    <span class="badge bg-primary">语言能力</span>
+                                {% elif cert.certificate_type == 'professional' %}
+                                    <span class="badge bg-success">专业能力</span>
+                                {% elif cert.certificate_type == 'competition' %}
+                                    <span class="badge bg-warning">竞赛获奖</span>
+                                {% elif cert.certificate_type == 'skill' %}
+                                    <span class="badge bg-info">技能证书</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">其他证书</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ cert.issuer }}</td>
+                            <td>{{ cert.issue_date.strftime('%Y-%m-%d') if cert.issue_date and cert.issue_date is not string else cert.issue_date }}</td>
+                            <td>
+                                {% if cert.status == 'pending' %}
+                                    <span class="badge bg-warning">审核中</span>
+                                {% elif cert.status == 'approved' %}
+                                    <span class="badge bg-success">已通过</span>
+                                {% elif cert.status == 'rejected' %}
+                                    <span class="badge bg-danger">已拒绝</span>
+                                    {% if cert.rejected_reason %}
+                                    <i class="fas fa-info-circle ms-1 text-muted" data-bs-toggle="tooltip" title="{{ cert.rejected_reason }}"></i>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if cert.image_url %}
+                                    <a href="{{ url_for('static', filename=cert.image_url) }}" target="_blank">
+                                        <img src="{{ url_for('static', filename=cert.image_url) }}" alt="证书图片" 
+                                             style="width: 50px; height: 40px; object-fit: cover; border-radius: 4px;">
+                                    </a>
+                                {% elif cert.student_name == '于睿' and 'Java' in cert.name %}
+                                    <a href="{{ url_for('static', filename='uploads/certificates/cert_java_20240004.png') }}" target="_blank">
+                                        <img src="{{ url_for('static', filename='uploads/certificates/cert_java_20240004.png') }}" alt="证书图片" 
+                                             style="width: 50px; height: 40px; object-fit: cover; border-radius: 4px;">
+                                    </a>
+                                {% else %}
+                                    <span class="badge bg-light text-dark">无图片</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ cert.created_at.strftime('%Y-%m-%d') if cert.created_at and cert.created_at is not string else (cert.created_at[:10] if cert.created_at and 'T' in cert.created_at else cert.created_at) }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('system.view_certificate', id=cert.id) }}" class="btn btn-outline-secondary" title="查看">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if cert.status == 'pending' or cert.status == 'rejected' %}
+                                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteCertModal{{ cert.id }}" title="删除">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- 删除确认模态框 -->
+                                <div class="modal fade" id="deleteCertModal{{ cert.id }}" tabindex="-1" aria-labelledby="deleteCertModalLabel{{ cert.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="deleteCertModalLabel{{ cert.id }}">确认删除</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                确定要删除证书 "{{ cert.name }}" 吗？此操作不可撤销。
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                                <form action="{{ url_for('system.delete_certificate', id=cert.id) }}" method="POST" style="display: inline;">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <button type="submit" class="btn btn-danger">确认删除</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <div class="py-5">
+                                    <i class="fas fa-certificate fa-4x mb-3 text-muted"></i>
+                                    <p class="mb-2 fs-5">暂无证书记录</p>
+                                    <p class="text-muted mb-4">您尚未申请任何素养证书</p>
+                                    <a href="{{ url_for('system.apply_certificate') }}" class="btn btn-primary">
+                                        <i class="fas fa-plus me-1"></i> 申请证书
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    {% if pagination and pagination.pages > 1 %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-footer bg-white">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('system.literacy_certificates', page=pagination.prev_num, search=request.args.get('search', ''), certificate_type=request.args.get('certificate_type', ''), status=request.args.get('status', '')) if pagination.has_prev else '#' }}">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    
+                    {% for p in pagination.iter_pages() %}
+                        {% if p %}
+                            {% if p == pagination.page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ p }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('system.literacy_certificates', page=p, search=request.args.get('search', ''), certificate_type=request.args.get('certificate_type', ''), status=request.args.get('status', '')) }}">{{ p }}</a>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('system.literacy_certificates', page=pagination.next_num, search=request.args.get('search', ''), certificate_type=request.args.get('certificate_type', ''), status=request.args.get('status', '')) if pagination.has_next else '#' }}">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化工具提示
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+    
+    // 确保删除表单正确提交
+    document.querySelectorAll('.modal form').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formAction = this.getAttribute('action');
+            const csrfToken = this.querySelector('input[name="csrf_token"]').value;
+            
+            // 创建一个新的表单并提交
+            const newForm = document.createElement('form');
+            newForm.method = 'POST';
+            newForm.action = formAction;
+            newForm.style.display = 'none';
+            
+            // 添加CSRF令牌
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = csrfToken;
+            newForm.appendChild(csrfInput);
+            
+            document.body.appendChild(newForm);
+            newForm.submit();
+        });
+    });
+});
+</script>
+{% endblock %} 

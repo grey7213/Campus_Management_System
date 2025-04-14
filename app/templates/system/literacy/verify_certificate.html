@@ -1,0 +1,293 @@
+{% extends 'admin/admin_layout.html' %}
+
+{% block title %}验证证书 - {{ settings.get('site_name', '校园综合管理平台') }}{% endblock %}
+
+{% block css %}
+{{ super() }}
+<style>
+    .verify-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border: none;
+    }
+    
+    .verify-form {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+    }
+    
+    .verify-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .verify-header h3 {
+        font-weight: 600;
+        color: #343a40;
+    }
+    
+    .verify-header p {
+        color: #6c757d;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .result-valid {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        border-left: 5px solid #28a745;
+    }
+    
+    .result-invalid {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        border-left: 5px solid #dc3545;
+    }
+    
+    .result-pending {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+        border-left: 5px solid #ffc107;
+    }
+    
+    .blockchain-info {
+        font-family: monospace;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        padding: 1rem;
+        margin-top: 1rem;
+        font-size: 0.85rem;
+        overflow-x: auto;
+    }
+    
+    .blockchain-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 0.2rem;
+    }
+    
+    .verification-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .certificate-image {
+        max-width: 100%;
+        border-radius: 5px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="verify-container">
+        <div class="verify-header">
+            <h3><i class="fas fa-shield-alt me-2"></i>证书区块链验证</h3>
+            <p class="text-muted">通过区块链技术验证证书的真实性和完整性，保证证书不可篡改和永久可信</p>
+        </div>
+        
+        <div class="verify-form">
+            <form method="GET" action="{{ url_for('system.verify_certificate') }}">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="请输入证书ID或扫描证书二维码" name="id" value="{{ request.args.get('id', '') }}">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search me-1"></i> 验证
+                    </button>
+                </div>
+                <div class="text-center text-muted small">
+                    <i class="fas fa-info-circle me-1"></i> 证书ID通常是以0x开头的64位字符串，可以从证书二维码获取
+                </div>
+            </form>
+        </div>
+        
+        {% if result %}
+            <div class="card mb-4 {% if result.success %}result-valid{% elif result.blockchain_data and not result.success %}result-invalid{% else %}result-pending{% endif %}">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        {% if result.success %}
+                            <div class="verification-badge bg-success text-white">
+                                <i class="fas fa-check-circle me-2"></i> 验证成功
+                            </div>
+                        {% elif result.blockchain_data and not result.success %}
+                            <div class="verification-badge bg-danger text-white">
+                                <i class="fas fa-times-circle me-2"></i> 验证失败
+                            </div>
+                        {% else %}
+                            <div class="verification-badge bg-warning text-dark">
+                                <i class="fas fa-exclamation-triangle me-2"></i> 未找到证书
+                            </div>
+                        {% endif %}
+                        
+                        <h4>{{ result.message }}</h4>
+                    </div>
+                    
+                    {% if result.certificate %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="mb-3">证书信息</h5>
+                                <table class="table table-striped">
+                                    <tbody>
+                                        <tr>
+                                            <th width="120">证书名称</th>
+                                            <td>{{ result.certificate.name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>证书类型</th>
+                                            <td>
+                                                {% if result.certificate.certificate_type == 'language' %}
+                                                    <span class="badge bg-primary">语言能力</span>
+                                                {% elif result.certificate.certificate_type == 'professional' %}
+                                                    <span class="badge bg-success">专业能力</span>
+                                                {% elif result.certificate.certificate_type == 'competition' %}
+                                                    <span class="badge bg-warning">竞赛获奖</span>
+                                                {% elif result.certificate.certificate_type == 'skill' %}
+                                                    <span class="badge bg-info">技能证书</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">其他证书</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>持有者</th>
+                                            <td>{{ result.certificate.student_name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>学号</th>
+                                            <td>{{ result.certificate.student_id_number }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>颁发机构</th>
+                                            <td>{{ result.certificate.issuer }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>颁发日期</th>
+                                            <td>{{ result.certificate.issue_date }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>证书编号</th>
+                                            <td>{{ result.certificate.certificate_no }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                {% if result.certificate.image_url %}
+                                    <h5 class="mb-3">证书图片</h5>
+                                    <img src="{{ url_for('static', filename=result.certificate.image_url) }}" alt="{{ result.certificate.name }}" class="certificate-image">
+                                {% else %}
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i> 证书没有上传图片
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h5 class="mb-3">区块链验证信息</h5>
+                            <div class="blockchain-info">
+                                <div class="row mb-2">
+                                    <div class="col-md-3">
+                                        <div class="blockchain-label">证书ID</div>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <code>{{ result.certificate.blockchain_certificate_id }}</code>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-2">
+                                    <div class="col-md-3">
+                                        <div class="blockchain-label">交易哈希</div>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <code>{{ result.certificate.blockchain_transaction_hash }}</code>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-2">
+                                    <div class="col-md-3">
+                                        <div class="blockchain-label">颁发时间</div>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <code>{{ result.blockchain_data.timestamp|default('-') }}</code>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-2">
+                                    <div class="col-md-3">
+                                        <div class="blockchain-label">颁发者地址</div>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <code>{{ result.blockchain_data.issuer|default('-') }}</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i> 未找到该证书的详细信息。如果您认为这是一个错误，请联系管理员。
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer bg-transparent text-center">
+                    <a href="{{ url_for('system.verify_certificate') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-redo me-1"></i> 验证其他证书
+                    </a>
+                    
+                    {% if result.certificate %}
+                        <a href="{{ url_for('system.view_certificate', id=result.certificate.id) }}" class="btn btn-primary ms-2">
+                            <i class="fas fa-eye me-1"></i> 查看证书详情
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+        
+        <div class="card bg-light">
+            <div class="card-body">
+                <h5><i class="fas fa-question-circle me-2 text-primary"></i>如何验证证书？</h5>
+                <div class="row">
+                    <div class="col-md-4 text-center mb-3 mb-md-0">
+                        <div class="p-3">
+                            <div class="rounded-circle bg-primary text-white d-inline-flex justify-content-center align-items-center mb-3" style="width: 50px; height: 50px;">
+                                <i class="fas fa-qrcode"></i>
+                            </div>
+                            <h6>扫描证书二维码</h6>
+                            <p class="small text-muted">使用手机扫描证书上的验证二维码</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center mb-3 mb-md-0">
+                        <div class="p-3">
+                            <div class="rounded-circle bg-primary text-white d-inline-flex justify-content-center align-items-center mb-3" style="width: 50px; height: 50px;">
+                                <i class="fas fa-keyboard"></i>
+                            </div>
+                            <h6>输入证书ID</h6>
+                            <p class="small text-muted">在上方输入框输入证书ID并验证</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="p-3">
+                            <div class="rounded-circle bg-primary text-white d-inline-flex justify-content-center align-items-center mb-3" style="width: 50px; height: 50px;">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <h6>查看验证结果</h6>
+                            <p class="small text-muted">系统将显示证书的验证结果和详情</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

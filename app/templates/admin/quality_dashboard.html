@@ -1,0 +1,42 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block title %}素养维度大屏 - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">素养维度大屏</h5>
+                    <h6 class="card-subtitle text-muted">实时展示学生素养维度数据分析</h6>
+                </div>
+                <div class="card-body" style="height: calc(100vh - 200px); padding: 0;">
+                    <iframe 
+                        src="http://192.168.151.7:50401/dv/7b198d1b3195e481830b/"
+                        style="width: 100%; height: 100%; border: none;"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 自适应iframe高度
+    function adjustIframeHeight() {
+        const iframe = document.querySelector('iframe');
+        const windowHeight = window.innerHeight;
+        const headerHeight = document.querySelector('.card-header').offsetHeight;
+        iframe.style.height = `${windowHeight - headerHeight - 100}px`;
+    }
+
+    window.addEventListener('resize', adjustIframeHeight);
+    adjustIframeHeight();
+});
+</script>
+{% endblock %} 

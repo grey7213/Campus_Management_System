@@ -1,0 +1,130 @@
+{% extends 'admin/admin_layout.html' %}
+
+{% block title %}添加班级 - {{ settings.get('site_name', '校园综合管理平台') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">添加新班级</h3>
+                <a href="{{ url_for('admin.classes') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> 返回班级列表
+                </a>
+            </div>
+            <p class="text-muted">创建新的班级信息，设置班级名称、所属专业、年级等信息</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('admin.create_class') }}">
+                        {{ form.csrf_token }}
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="name" class="form-label">班级名称 <span class="text-danger">*</span></label>
+                                    {{ form.name(class="form-control", placeholder="请输入班级名称") }}
+                                    {% if form.name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.name.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="code" class="form-label">班级代码 <span class="text-danger">*</span></label>
+                                    {{ form.code(class="form-control", placeholder="请输入班级代码") }}
+                                    {% if form.code.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.code.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">班级的唯一标识，例如：2023CS01</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="major_id" class="form-label">所属专业 <span class="text-danger">*</span></label>
+                                    {{ form.major_id(class="form-select") }}
+                                    {% if form.major_id.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.major_id.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="grade" class="form-label">年级 <span class="text-danger">*</span></label>
+                                    {{ form.grade(class="form-control", placeholder="请输入年级，如：2023") }}
+                                    {% if form.grade.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.grade.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">入学年份，如：2023</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="capacity" class="form-label">班级容量 <span class="text-danger">*</span></label>
+                                    {{ form.capacity(class="form-control", placeholder="请输入班级容量") }}
+                                    {% if form.capacity.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.capacity.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">班级最大学生人数</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="description" class="form-label">班级描述</label>
+                            {{ form.description(class="form-control", rows="3", placeholder="请输入班级描述信息") }}
+                            {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.description.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <small class="form-text text-muted">可选，班级的特点、班主任等额外信息</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> 保存班级信息
+                            </button>
+                            <a href="{{ url_for('admin.classes') }}" class="btn btn-secondary">
+                                取消
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,273 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block title %}院系管理 - {{ settings.get('site_name', '校园综合管理平台') }}{% endblock %}
+
+{% block content %}
+<!-- 欢迎部分 -->
+<div class="welcome-section">
+    <h1 class="welcome-heading">院系管理</h1>
+    <p class="welcome-date">管理学校院系和组织架构</p>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">院系列表</h5>
+                    <div>
+                        <a href="{{ url_for('admin.create_department') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> 添加院系
+                        </a>
+                    </div>
+                </div>
+                
+                <form action="{{ url_for('admin.departments') }}" method="GET" class="row mb-3">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="q" placeholder="搜索院系名称或代码" value="{{ request.args.get('q', '') }}">
+                            <button class="btn btn-outline-secondary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('admin.departments') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-sync-alt me-1"></i> 重置筛选
+                        </a>
+                    </div>
+                </form>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">编号</th>
+                                <th>名称</th>
+                                <th>代码</th>
+                                <th>负责人</th>
+                                <th>联系方式</th>
+                                <th>专业数量</th>
+                                <th>教师数量</th>
+                                <th>状态</th>
+                                <th>创建时间</th>
+                                <th style="width: 150px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for department in departments %}
+                            <tr>
+                                <td>{{ department.id }}</td>
+                                <td>{{ department.name }}</td>
+                                <td>{{ department.code }}</td>
+                                <td>{{ department.head_name or '未指定' }}</td>
+                                <td>{{ department.contact or '未设置' }}</td>
+                                <td>
+                                    {% if department.majors is defined %}
+                                        {{ department.majors|length }}
+                                    {% else %}
+                                        {{ department.majors_count }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if department.teachers is defined %}
+                                        {{ department.teachers|length }}
+                                    {% else %}
+                                        {{ department.teachers_count }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if department.status == 'active' %}
+                                    <span class="badge bg-success">正常</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">停用</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ department.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('admin.view_department', id=department.id) }}" class="btn btn-outline-primary" title="查看">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('admin.edit_department', id=department.id) }}" class="btn btn-outline-secondary" title="编辑">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-outline-danger" title="删除" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="{{ department.id }}" data-name="{{ department.name }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="9" class="text-center py-3">
+                                    <div class="py-5">
+                                        <i class="fas fa-building fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">暂无院系数据</p>
+                                        <a href="{{ url_for('admin.create_department') }}" class="btn btn-primary mt-2">
+                                            <i class="fas fa-plus me-1"></i> 添加第一个院系
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页 -->
+                {% if pagination and pagination.pages > 1 %}
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>显示 {{ pagination.page }} / {{ pagination.pages }} 页，共 {{ pagination.total }} 条记录</div>
+                    <nav>
+                        <ul class="pagination mb-0">
+                            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin.departments', page=pagination.prev_num, q=request.args.get('q', '')) if pagination.has_prev else '#' }}">上一页</a>
+                            </li>
+                            
+                            {% for page in pagination.iter_pages() %}
+                                {% if page %}
+                                    <li class="page-item {% if page == pagination.page %}active{% endif %}">
+                                        <a class="page-link" href="{{ url_for('admin.departments', page=page, q=request.args.get('q', '')) }}">{{ page }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin.departments', page=pagination.next_num, q=request.args.get('q', '')) if pagination.has_next else '#' }}">下一页</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 院系数据统计 -->
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-1">总院系数</h6>
+                        <h2 class="mb-0">{{ pagination.total if pagination else departments|length }}</h2>
+                    </div>
+                    <div class="bg-primary-light rounded-circle p-3">
+                        <i class="fas fa-building fa-2x text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-1">总专业数</h6>
+                        <h2 class="mb-0">
+                            {% if departments %}
+                                {% set total = 0 %}
+                                {% for dept in departments %}
+                                    {% if dept.majors is defined %}
+                                        {% set total = total + dept.majors|length %}
+                                    {% else %}
+                                        {% set total = total + dept.majors_count %}
+                                    {% endif %}
+                                {% endfor %}
+                                {{ total }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </h2>
+                    </div>
+                    <div class="bg-success-light rounded-circle p-3">
+                        <i class="fas fa-graduation-cap fa-2x text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-1">总教师数</h6>
+                        <h2 class="mb-0">
+                            {% if departments %}
+                                {% set total = 0 %}
+                                {% for dept in departments %}
+                                    {% if dept.teachers is defined %}
+                                        {% set total = total + dept.teachers|length %}
+                                    {% else %}
+                                        {% set total = total + dept.teachers_count %}
+                                    {% endif %}
+                                {% endfor %}
+                                {{ total }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </h2>
+                    </div>
+                    <div class="bg-info-light rounded-circle p-3">
+                        <i class="fas fa-chalkboard-teacher fa-2x text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">确认删除院系</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>确定要删除院系 <strong id="departmentName"></strong> 吗？</p>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span>删除院系将会同时删除该院系下的所有专业和班级数据，该操作不可恢复。</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <form id="deleteForm" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">确认删除</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 删除院系的模态框处理
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const departmentId = button.getAttribute('data-id');
+                const departmentName = button.getAttribute('data-name');
+                const deleteForm = document.getElementById('deleteForm');
+                const departmentNameEl = document.getElementById('departmentName');
+                
+                deleteForm.action = "{{ url_for('admin.departments') }}" + "/" + departmentId + "/delete";
+                departmentNameEl.textContent = departmentName;
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,338 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block title %}公告管理 - 校园综合管理平台{% endblock %}
+
+{% block content %}
+<!-- 欢迎部分 -->
+<div class="welcome-section">
+    <h1 class="welcome-heading">公告管理</h1>
+    <p class="welcome-date">管理系统公告、通知和消息</p>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">公告列表</h5>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i> 发布新公告
+                    </button>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="搜索公告标题或内容">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select">
+                            <option selected>所有类型</option>
+                            <option>系统公告</option>
+                            <option>活动通知</option>
+                            <option>紧急通知</option>
+                            <option>课程通知</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select">
+                            <option selected>所有状态</option>
+                            <option>已发布</option>
+                            <option>草稿</option>
+                            <option>已过期</option>
+                            <option>已撤回</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-filter me-1"></i> 筛选
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">#</th>
+                                <th>标题</th>
+                                <th style="width: 120px;">类型</th>
+                                <th style="width: 100px;">状态</th>
+                                <th style="width: 180px;">发布时间</th>
+                                <th style="width: 120px;">发布人</th>
+                                <th style="width: 120px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-danger me-2">置顶</span>
+                                        关于2023-2024学年第二学期选课的通知
+                                    </div>
+                                </td>
+                                <td>系统公告</td>
+                                <td><span class="badge bg-success">已发布</span></td>
+                                <td>2023-03-15 10:30</td>
+                                <td>管理员</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" title="查看">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" title="编辑">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger" title="删除">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        校园网络维护通知
+                                    </div>
+                                </td>
+                                <td>紧急通知</td>
+                                <td><span class="badge bg-success">已发布</span></td>
+                                <td>2023-03-10 14:45</td>
+                                <td>网络管理员</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" title="查看">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" title="编辑">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger" title="删除">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        春季运动会报名通知
+                                    </div>
+                                </td>
+                                <td>活动通知</td>
+                                <td><span class="badge bg-warning text-dark">草稿</span></td>
+                                <td>-</td>
+                                <td>体育部门</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" title="查看">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" title="编辑">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger" title="删除">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        关于期末考试安排的通知
+                                    </div>
+                                </td>
+                                <td>课程通知</td>
+                                <td><span class="badge bg-secondary">已过期</span></td>
+                                <td>2023-01-05 09:00</td>
+                                <td>教务处</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" title="查看">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" title="编辑">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger" title="删除">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        图书馆开放时间调整通知
+                                    </div>
+                                </td>
+                                <td>系统公告</td>
+                                <td><span class="badge bg-danger">已撤回</span></td>
+                                <td>2023-02-20 16:30</td>
+                                <td>图书馆</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" title="查看">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" title="编辑">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger" title="删除">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>显示 1 至 5，共 12 条记录</div>
+                    <nav>
+                        <ul class="pagination mb-0">
+                            <li class="page-item disabled"><a class="page-link" href="#">上一页</a></li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item"><a class="page-link" href="#">下一页</a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">公告统计</h5>
+                <div class="row text-center mb-3">
+                    <div class="col-md-3">
+                        <div class="bg-light p-3 rounded">
+                            <h3 class="mb-0">12</h3>
+                            <small class="text-muted">总公告数</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="bg-light p-3 rounded">
+                            <h3 class="mb-0">7</h3>
+                            <small class="text-muted">已发布</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="bg-light p-3 rounded">
+                            <h3 class="mb-0">3</h3>
+                            <small class="text-muted">草稿</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="bg-light p-3 rounded">
+                            <h3 class="mb-0">2</h3>
+                            <small class="text-muted">已过期</small>
+                        </div>
+                    </div>
+                </div>
+                <div id="announcement-chart" style="height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">最近活动</h5>
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item px-0">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="fas fa-plus-circle text-success me-2"></i> 发布了新公告</span>
+                            <small class="text-muted">今天 10:45</small>
+                        </div>
+                        <small class="text-muted">管理员发布了"关于2023-2024学年第二学期选课的通知"</small>
+                    </div>
+                    <div class="list-group-item px-0">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="fas fa-edit text-primary me-2"></i> 编辑了公告</span>
+                            <small class="text-muted">昨天 14:20</small>
+                        </div>
+                        <small class="text-muted">网络管理员编辑了"校园网络维护通知"</small>
+                    </div>
+                    <div class="list-group-item px-0">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="fas fa-trash text-danger me-2"></i> 删除了公告</span>
+                            <small class="text-muted">3天前</small>
+                        </div>
+                        <small class="text-muted">管理员删除了"旧通知"</small>
+                    </div>
+                    <div class="list-group-item px-0">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="fas fa-check-circle text-warning me-2"></i> 撤回了公告</span>
+                            <small class="text-muted">一周前</small>
+                        </div>
+                        <small class="text-muted">图书馆撤回了"图书馆开放时间调整通知"</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 模拟图表数据
+        var options = {
+            series: [{
+                name: '发布公告',
+                data: [3, 1, 2, 4, 2, 3, 1]
+            }],
+            chart: {
+                height: 300,
+                type: 'bar',
+                toolbar: {
+                    show: false
+                }
+            },
+            plotOptions: {
+                bar: {
+                    borderRadius: 3,
+                    columnWidth: '50%',
+                }
+            },
+            colors: ['#1890ff'],
+            dataLabels: {
+                enabled: false
+            },
+            xaxis: {
+                categories: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                axisBorder: {
+                    show: false
+                }
+            },
+            yaxis: {
+                title: {
+                    text: '公告数量'
+                }
+            }
+        };
+
+        var chart = new ApexCharts(document.querySelector("#announcement-chart"), options);
+        chart.render();
+    });
+</script>
+{% endblock %} 

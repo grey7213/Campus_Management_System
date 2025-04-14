@@ -1,0 +1,189 @@
+{% extends "admin/admin_layout.html" %}
+
+{% block title %}院系详情 - 校园综合管理平台{% endblock %}
+
+{% block content %}
+<!-- 欢迎部分 -->
+<div class="welcome-section">
+    <h1 class="welcome-heading">院系详情</h1>
+    <p class="welcome-date">查看院系详细信息</p>
+</div>
+
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="d-flex justify-content-end">
+            <a href="{{ url_for('admin.edit_department', id=department.id) }}" class="btn btn-primary me-2">
+                <i class="fas fa-edit me-1"></i> 编辑院系
+            </a>
+            <a href="{{ url_for('admin.departments') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> 返回院系列表
+            </a>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">基本信息</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted mb-1">院系代码</h6>
+                        <p class="mb-0 fs-5">{{ department.code }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted mb-1">院系名称</h6>
+                        <p class="mb-0 fs-5">{{ department.name }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted mb-1">联系方式</h6>
+                        <p class="mb-0">{{ department.contact or '暂无联系方式' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted mb-1">创建时间</h6>
+                        <p class="mb-0">{{ department.created_at.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                    <div class="col-md-12 mt-2">
+                        <h6 class="text-muted mb-1">院系介绍</h6>
+                        <p class="mb-0">
+                            {{ department.description or '暂无介绍信息' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">专业列表</h5>
+                <a href="{{ url_for('admin.create_major') }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus me-1"></i> 添加专业
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>专业代码</th>
+                                <th>专业名称</th>
+                                <th>班级数量</th>
+                                <th>学生人数</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for major in majors %}
+                            <tr>
+                                <td>{{ major.code }}</td>
+                                <td>{{ major.name }}</td>
+                                <td>{{ major.classes.count() }}</td>
+                                <td>{{ major.get_student_count() }}</td>
+                                <td>
+                                    {% if major.status == 'active' %}
+                                    <span class="badge bg-success">活跃</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">停用</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('admin.view_major', id=major.id) }}" class="btn btn-outline-primary" title="查看详情">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('admin.edit_major', id=major.id) }}" class="btn btn-outline-secondary" title="编辑">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-3">该院系暂无专业</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">统计数据</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0">
+                        <div class="stat-icon bg-primary">
+                            <i class="fas fa-sitemap"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">专业数量</h6>
+                        <h3 class="mb-0">{{ major_count }}</h3>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0">
+                        <div class="stat-icon bg-success">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">学生人数</h6>
+                        <h3 class="mb-0">{{ student_count }}</h3>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="stat-icon bg-info">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">教师人数</h6>
+                        <h3 class="mb-0">{{ teacher_count }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">教师列表</h5>
+                <a href="{{ url_for('admin.teachers') }}" class="btn btn-sm btn-outline-primary">
+                    查看全部
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for teacher in department.teachers[:5] %}
+                    <li class="list-group-item">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar avatar-md me-3">
+                                <div class="avatar-initial rounded-circle bg-light text-primary">
+                                    {{ teacher.name[0] }}
+                                </div>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">{{ teacher.name }}</h6>
+                                <small class="text-muted">{{ teacher.title or '未设置职称' }}</small>
+                            </div>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-center py-3">
+                        <p class="mb-0 text-muted">该院系暂无教师</p>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

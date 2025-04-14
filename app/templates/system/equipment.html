@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}设备管理 - 校园管理系统{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-laptop mr-2"></i>设备管理</h2>
+        <div>
+            <span class="text-muted">今天是：</span>
+            <span id="current-date" class="font-weight-bold"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- 设备登记 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-primary-light mx-auto">
+                        <i class="fas fa-laptop text-white"></i>
+                    </div>
+                    <h5 class="module-title">设备登记</h5>
+                    <p class="card-text">登记和管理校园设备信息</p>
+                    <a href="{{ url_for('system_extended.equipment_register') }}" class="btn btn-sm btn-outline-primary">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 设备维护 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-success-light mx-auto">
+                        <i class="fas fa-tools text-white"></i>
+                    </div>
+                    <h5 class="module-title">设备维护</h5>
+                    <p class="card-text">管理设备维修和保养</p>
+                    <a href="{{ url_for('system_extended.equipment_maintenance') }}" class="btn btn-sm btn-outline-success">进入</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 设备借用 -->
+        <div class="col-md-3 mb-4">
+            <div class="card module-card">
+                <div class="card-body text-center">
+                    <div class="card-icon bg-info-light mx-auto">
+                        <i class="fas fa-exchange-alt text-white"></i>
+                    </div>
+                    <h5 class="module-title">设备借用</h5>
+                    <p class="card-text">管理设备借用和归还</p>
+                    <a href="{{ url_for('system_extended.equipment_borrow') }}" class="btn btn-sm btn-outline-info">进入</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设备列表 -->
+    <div class="card">
+        <div class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">设备列表</h5>
+                <div>
+                    <a href="{{ url_for('system_extended.equipment_register') }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus mr-1"></i>添加设备
+                    </a>
+                    <a href="#" class="btn btn-sm btn-success ml-2">
+                        <i class="fas fa-file-import mr-1"></i>批量导入
+                    </a>
+                    <a href="#" class="btn btn-sm btn-info ml-2">
+                        <i class="fas fa-file-export mr-1"></i>导出数据
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th width="5%">#</th>
+                            <th width="10%">设备编号</th>
+                            <th width="15%">设备名称</th>
+                            <th width="10%">设备类型</th>
+                            <th width="10%">所在位置</th>
+                            <th width="10%">购入日期</th>
+                            <th width="10%">状态</th>
+                            <th width="10%">负责人</th>
+                            <th width="20%">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for equipment in equipments %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ equipment.code }}</td>
+                            <td>{{ equipment.name }}</td>
+                            <td>{{ equipment.type }}</td>
+                            <td>{{ equipment.location }}</td>
+                            <td>{{ equipment.purchase_date.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                {% if equipment.status == 'available' %}
+                                <span class="badge badge-success">可用</span>
+                                {% elif equipment.status == 'in_use' %}
+                                <span class="badge badge-primary">使用中</span>
+                                {% elif equipment.status == 'maintenance' %}
+                                <span class="badge badge-warning">维修中</span>
+                                {% elif equipment.status == 'scrapped' %}
+                                <span class="badge badge-danger">已报废</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ equipment.manager }}</td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="#" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="#" class="btn btn-sm btn-success">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </a>
+                                <a href="#" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-tools"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center">暂无设备数据</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 显示当前日期
+    document.getElementById('current-date').textContent = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+</script>
+{% endblock %}

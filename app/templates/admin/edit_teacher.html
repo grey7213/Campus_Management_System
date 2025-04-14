@@ -1,0 +1,195 @@
+{% extends 'admin/admin_layout.html' %}
+
+{% block title %}编辑教师 - {{ settings.get('site_name', '校园综合管理平台') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">编辑教师信息</h3>
+                <div>
+                    <a href="{{ url_for('admin.view_teacher', id=teacher.id) }}" class="btn btn-info">
+                        <i class="fas fa-eye"></i> 查看详情
+                    </a>
+                    <a href="{{ url_for('admin.teachers') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> 返回教师列表
+                    </a>
+                </div>
+            </div>
+            <p class="text-muted">编辑ID为 {{ teacher.id }} 的教师 "{{ teacher.name }}" 的详细信息</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('admin.edit_teacher', id=teacher.id) }}">
+                        {{ form.csrf_token }}
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="teacher_id" class="form-label">工号 <span class="text-danger">*</span></label>
+                                    {{ form.teacher_id(class="form-control", placeholder="请输入教师工号", readonly=True) }}
+                                    {% if form.teacher_id.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.teacher_id.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">工号不可修改</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="name" class="form-label">姓名 <span class="text-danger">*</span></label>
+                                    {{ form.name(class="form-control", placeholder="请输入教师姓名") }}
+                                    {% if form.name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.name.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="gender" class="form-label">性别</label>
+                                    {{ form.gender(class="form-select") }}
+                                    {% if form.gender.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.gender.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="title" class="form-label">职称</label>
+                                    {{ form.title(class="form-select") }}
+                                    {% if form.title.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.title.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="department_id" class="form-label">所属院系</label>
+                                    {{ form.department_id(class="form-select") }}
+                                    {% if form.department_id.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.department_id.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="status" class="form-label">状态</label>
+                                    {{ form.status(class="form-select") }}
+                                    {% if form.status.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.status.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="email" class="form-label">邮箱 <span class="text-danger">*</span></label>
+                                    {{ form.email(class="form-control", placeholder="请输入电子邮箱") }}
+                                    {% if form.email.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.email.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="phone" class="form-label">手机号码</label>
+                                    {{ form.phone(class="form-control", placeholder="请输入手机号码") }}
+                                    {% if form.phone.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.phone.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="password" class="form-label">密码</label>
+                                    {{ form.password(class="form-control", placeholder="留空则不修改密码") }}
+                                    {% if form.password.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.password.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">如不需要修改密码，请留空</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="form-group mb-3">
+                                    <label for="bio" class="form-label">教师简介</label>
+                                    {{ form.bio(class="form-control", rows="4", placeholder="请输入教师简介") }}
+                                    {% if form.bio.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.bio.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> 保存修改
+                            </button>
+                            <a href="{{ url_for('admin.teachers') }}" class="btn btn-secondary">
+                                取消
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

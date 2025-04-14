@@ -1,0 +1,253 @@
+{% extends 'admin/admin_layout.html' %}
+
+{% block title %}证书图片诊断 - {{ settings.get('site_name', '校园综合管理平台') }}{% endblock %}
+
+{% block css %}
+{{ super() }}
+<style>
+    .debug-card {
+        margin-bottom: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    .debug-section {
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+    }
+    .debug-section:last-child {
+        border-bottom: none;
+    }
+    .info-item {
+        margin-bottom: 10px;
+    }
+    .info-label {
+        font-weight: bold;
+        margin-right: 5px;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 0.85em;
+    }
+    .status-success {
+        background-color: #d1e7dd;
+        color: #0f5132;
+    }
+    .status-danger {
+        background-color: #f8d7da;
+        color: #842029;
+    }
+    .image-preview {
+        max-width: 100%;
+        border: 1px solid #ddd;
+        padding: 5px;
+        border-radius: 5px;
+        margin-top: 15px;
+    }
+    .image-preview img {
+        max-width: 100%;
+        max-height: 400px;
+        display: block;
+        margin: 0 auto;
+    }
+    .fix-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-bug me-2 text-danger"></i> 证书图片诊断工具
+        </h2>
+        <div>
+            <a href="{{ url_for('system.view_certificate', id=certificate.id) }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> 返回证书详情
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- 证书基本信息 -->
+            <div class="card debug-card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">证书基本信息</h5>
+                </div>
+                <div class="debug-section">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <span class="info-label">证书ID:</span>
+                                <span>{{ certificate.id }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">证书名称:</span>
+                                <span>{{ certificate.name }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">证书类型:</span>
+                                <span>{{ certificate.certificate_type }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <span class="info-label">持有人:</span>
+                                <span>{{ student.name if student else '未知' }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">状态:</span>
+                                <span>{{ certificate.status }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图片信息 -->
+            <div class="card debug-card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">图片信息</h5>
+                </div>
+                <div class="debug-section">
+                    <div class="info-item">
+                        <span class="info-label">image_url 属性存在:</span>
+                        <span class="status-badge {{ 'status-success' if image_url_exists else 'status-danger' }}">
+                            {{ '存在' if image_url_exists else '不存在' }}
+                        </span>
+                    </div>
+                    
+                    {% if image_url_exists %}
+                        <div class="info-item">
+                            <span class="info-label">图片路径:</span>
+                            <span>{{ image_path }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">完整文件路径:</span>
+                            <span>{{ absolute_path }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">文件是否存在:</span>
+                            <span class="status-badge {{ 'status-success' if file_exists else 'status-danger' }}">
+                                {{ '存在' if file_exists else '不存在' }}
+                            </span>
+                        </div>
+                    {% endif %}
+                    
+                    {% if is_yu_rui_cert %}
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-info-circle me-1"></i>
+                            这是于睿的Java证书，可以使用特殊处理
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">于睿Java证书图片:</span>
+                            <span class="status-badge {{ 'status-success' if yu_rui_image_exists else 'status-danger' }}">
+                                {{ '存在' if yu_rui_image_exists else '不存在' }}
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">于睿Java证书路径:</span>
+                            <span>{{ yu_rui_image_path }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 图片预览 -->
+            <div class="card debug-card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">图片预览</h5>
+                </div>
+                <div class="debug-section">
+                    {% if image_url_exists and file_exists %}
+                        <div class="image-preview">
+                            <img src="{{ static_url }}" alt="证书图片">
+                        </div>
+                    {% elif is_yu_rui_cert and yu_rui_image_exists %}
+                        <div class="alert alert-warning mb-3">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            当前证书没有图片或图片不存在，但可以使用于睿的Java证书图片。
+                        </div>
+                        <div class="image-preview">
+                            <img src="{{ url_for('static', filename=yu_rui_image_path) }}" alt="于睿Java证书图片">
+                        </div>
+                    {% else %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-1"></i>
+                            证书没有可用的图片
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- 修复选项 -->
+            <div class="card debug-card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">修复选项</h5>
+                </div>
+                <div class="debug-section">
+                    <h6 class="mb-3">上传新图片</h6>
+                    <form action="{{ url_for('system_extended.fix_certificate_image', id=certificate.id) }}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="upload_image">
+                        <div class="mb-3">
+                            <input type="file" class="form-control" name="image_file" accept="image/*" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload me-1"></i> 上传并设置
+                        </button>
+                    </form>
+
+                    <hr>
+
+                    {% if is_yu_rui_cert and yu_rui_image_exists %}
+                        <h6 class="mb-3">使用于睿的Java证书图片</h6>
+                        <form action="{{ url_for('system_extended.fix_certificate_image', id=certificate.id) }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="action" value="use_yu_rui_cert">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-1"></i> 使用于睿Java证书图片
+                            </button>
+                        </form>
+
+                        <hr>
+                    {% endif %}
+
+                    <h6 class="mb-3">手动设置图片路径</h6>
+                    <form action="{{ url_for('system_extended.fix_certificate_image', id=certificate.id) }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="update_path">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" name="new_path" 
+                                   placeholder="例如: uploads/certificates/cert_java_20240004.png" required>
+                            <div class="form-text">请输入相对于static目录的路径</div>
+                        </div>
+                        <button type="submit" class="btn btn-info">
+                            <i class="fas fa-edit me-1"></i> 更新路径
+                        </button>
+                    </form>
+
+                    <hr>
+
+                    <h6 class="mb-3">清除图片路径</h6>
+                    <form action="{{ url_for('system_extended.fix_certificate_image', id=certificate.id) }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="clear_path">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('确定要清除图片路径吗？')">
+                            <i class="fas fa-trash me-1"></i> 清除图片路径
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
