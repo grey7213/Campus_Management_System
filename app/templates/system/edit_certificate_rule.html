@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if is_edit %}编辑{% else %}添加{% endif %}证书规则{% endblock %}
+
+{% block styles %}
+<style>
+    .rule-form {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+    
+    .form-section {
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .form-section:last-child {
+        border-bottom: none;
+    }
+    
+    .form-section-title {
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{% if is_edit %}编辑{% else %}添加{% endif %}证书规则</h2>
+        <a href="{{ url_for('system.certificate_rules') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> 返回规则列表
+        </a>
+    </div>
+    
+    <div class="rule-form">
+        <form method="POST" action="{{ url_for('system.edit_certificate_rule', rule_id=rule.id) if is_edit else url_for('system.add_certificate_rule') }}">
+            
+            <div class="form-section">
+                <h4 class="form-section-title">基本信息</h4>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="name" class="form-label">规则名称</label>
+                        <input type="text" id="name" name="name" class="form-control" value="{{ rule.name if rule else '' }}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="is_active" class="form-label">状态</label>
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if not rule or rule.is_active %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">启用规则</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">规则描述</label>
+                    <textarea id="description" name="description" class="form-control" rows="3">{{ rule.description if rule else '' }}</textarea>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h4 class="form-section-title">触发条件</h4>
+                <div class="mb-3">
+                    <label for="condition_type" class="form-label">条件类型</label>
+                    <select id="condition_type" name="condition_type" class="form-select" required>
+                        <option value="count" {% if rule and rule.condition_type == 'count' %}selected{% endif %}>数量条件</option>
+                        <option value="combination" {% if rule and rule.condition_type == 'combination' %}selected{% endif %}>组合条件</option>
+                    </select>
+                    <div class="form-text">
+                        <strong>数量条件</strong>：需要达到指定数量的证书<br>
+                        <strong>组合条件</strong>：需要每种类型的证书各至少一个
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="required_certificate_types" class="form-label">需要的证书类型</label>
+                    <input type="text" id="required_certificate_types" name="required_certificate_types" class="form-control" 
+                           value="{{ rule.required_certificate_types if rule else '' }}" placeholder="多个类型用逗号分隔，如：language,skill,professional">
+                    <div class="form-text">填写证书类型，多个类型用逗号分隔。可用类型：{{ certificate_types|join(', ') }}</div>
+                </div>
+                
+                <div class="mb-3" id="count_condition">
+                    <label for="required_certificate_count" class="form-label">需要的证书数量</label>
+                    <input type="number" id="required_certificate_count" name="required_certificate_count" class="form-control" 
+                           value="{{ rule.required_certificate_count if rule else '1' }}" min="1">
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h4 class="form-section-title">目标证书</h4>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="target_certificate_name" class="form-label">证书名称</label>
+                        <input type="text" id="target_certificate_name" name="target_certificate_name" class="form-control" 
+                               value="{{ rule.target_certificate_name if rule else '' }}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="target_certificate_type" class="form-label">证书类型</label>
+                        <select id="target_certificate_type" name="target_certificate_type" class="form-select" required>
+                            {% for cert_type in certificate_types %}
+                            <option value="{{ cert_type }}" {% if rule and rule.target_certificate_type == cert_type %}selected{% endif %}>{{ cert_type }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="target_certificate_issuer" class="form-label">颁发机构</label>
+                    <input type="text" id="target_certificate_issuer" name="target_certificate_issuer" class="form-control" 
+                           value="{{ rule.target_certificate_issuer if rule else '智证校园系统' }}">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="target_certificate_description" class="form-label">证书描述</label>
+                    <textarea id="target_certificate_description" name="target_certificate_description" class="form-control" rows="3">{{ rule.target_certificate_description if rule else '' }}</textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="auto_blockchain" name="auto_blockchain" 
+                               {% if not rule or rule.auto_blockchain %}checked{% endif %}>
+                        <label class="form-check-label" for="auto_blockchain">自动上链</label>
+                    </div>
+                    <div class="form-text">启用后，自动生成的证书将立即发布到区块链</div>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-end">
+                <a href="{{ url_for('system.certificate_rules') }}" class="btn btn-outline-secondary me-2">取消</a>
+                <button type="submit" class="btn btn-primary">保存规则</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 根据条件类型显示/隐藏相应字段
+    document.addEventListener('DOMContentLoaded', function() {
+        const conditionType = document.getElementById('condition_type');
+        const countCondition = document.getElementById('count_condition');
+        
+        function updateVisibility() {
+            if (conditionType.value === 'count') {
+                countCondition.style.display = 'block';
+            } else {
+                countCondition.style.display = 'none';
+            }
+        }
+        
+        conditionType.addEventListener('change', updateVisibility);
+        updateVisibility(); // 初始更新
+    });
+</script>
+{% endblock %} 

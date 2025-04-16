@@ -183,10 +183,10 @@
                                 </div>
                             </td>
                             <td>
-                                {% if cert.student_name %}
-                                    <span class="badge rounded-pill bg-dark bg-opacity-10 text-dark">
+                                {% if cert.student_name and cert.student_id %}
+                                    <a href="{{ url_for('system.student_detail', student_id=cert.student_id) }}" class="badge rounded-pill bg-dark bg-opacity-10 text-dark text-decoration-none">
                                         <i class="fas fa-user me-1"></i> {{ cert.student_name }}
-                                    </span>
+                                    </a>
                                 {% else %}
                                     <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary">
                                         <i class="fas fa-user me-1"></i> 未知

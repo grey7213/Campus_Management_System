@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+
+{% block title %}区块链证书详情{% endblock %}
+
+{% block styles %}
+<style>
+    .blockchain-details-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .blockchain-section {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        padding: 20px;
+    }
+    
+    .blockchain-header {
+        border-bottom: 1px solid #eee;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+    }
+    
+    .transaction-detail {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed #eee;
+    }
+    
+    .transaction-detail:last-child {
+        border-bottom: none;
+    }
+    
+    .detail-label {
+        font-weight: 500;
+        color: #555;
+        width: 30%;
+    }
+    
+    .detail-value {
+        width: 70%;
+        word-break: break-all;
+    }
+    
+    .cert-data-field {
+        margin-bottom: 8px;
+    }
+    
+    .verification-step {
+        display: flex;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    
+    .step-number {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background-color: #4CAF50;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-weight: bold;
+    }
+    
+    .step-content {
+        border-left: 2px dashed #4CAF50;
+        padding-left: 15px;
+        padding-bottom: 15px;
+        flex-grow: 1;
+    }
+    
+    .verification-step:last-child .step-content {
+        border-left: 2px dashed transparent;
+    }
+    
+    .step-title {
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+    
+    .step-description {
+        color: #666;
+        margin-bottom: 5px;
+    }
+    
+    .step-timestamp {
+        font-size: 0.8rem;
+        color: #888;
+    }
+    
+    .qr-code-container {
+        text-align: center;
+        padding: 15px;
+        background-color: #f9f9f9;
+        border-radius: 5px;
+        max-width: 250px;
+        margin: 0 auto;
+    }
+    
+    .qr-code-img {
+        max-width: 200px;
+        margin-bottom: 10px;
+    }
+    
+    .certificate-link {
+        display: inline-block;
+        margin-top: 10px;
+    }
+    
+    .back-to-verify {
+        display: inline-block;
+        margin-bottom: 20px;
+    }
+    
+    .hash-data {
+        font-family: monospace;
+        background-color: #f5f5f5;
+        padding: 2px 5px;
+        border-radius: 3px;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="blockchain-details-container">
+        <a href="{{ url_for('system.verify_certificate', id=certificate.blockchain_certificate_id) }}" class="back-to-verify">
+            <i class="fas fa-arrow-left me-1"></i> 返回证书验证
+        </a>
+        
+        <div class="blockchain-section">
+            <div class="blockchain-header">
+                <h3><i class="fas fa-certificate me-2"></i>区块链证书详情</h3>
+                <p class="text-muted">查看证书在区块链上的详细信息和验证过程</p>
+            </div>
+            
+            <h4 class="mb-3">证书基本信息</h4>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="transaction-detail">
+                        <div class="detail-label">证书名称</div>
+                        <div class="detail-value">{{ certificate.name }}</div>
+                    </div>
+                    <div class="transaction-detail">
+                        <div class="detail-label">证书类型</div>
+                        <div class="detail-value">{{ certificate.certificate_type }}</div>
+                    </div>
+                    <div class="transaction-detail">
+                        <div class="detail-label">颁发机构</div>
+                        <div class="detail-value">{{ certificate.issuer }}</div>
+                    </div>
+                    <div class="transaction-detail">
+                        <div class="detail-label">颁发日期</div>
+                        <div class="detail-value">{{ certificate.issue_date.strftime('%Y-%m-%d') if certificate.issue_date else '未知' }}</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="transaction-detail">
+                        <div class="detail-label">证书编号</div>
+                        <div class="detail-value">{{ certificate.certificate_no }}</div>
+                    </div>
+                    <div class="transaction-detail">
+                        <div class="detail-label">持有人</div>
+                        <div class="detail-value">{{ student.name if student else '未知' }}</div>
+                    </div>
+                    <div class="transaction-detail">
+                        <div class="detail-label">学号</div>
+                        <div class="detail-value">{{ student.student_id if student else '未知' }}</div>
+                    </div>
+                    <div class="transaction-detail">
+                        <div class="detail-label">创建时间</div>
+                        <div class="detail-value">{{ certificate.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <h4 class="mb-3">区块链交易信息</h4>
+            <div class="mb-4">
+                <div class="transaction-detail">
+                    <div class="detail-label">交易哈希</div>
+                    <div class="detail-value">
+                        <span class="hash-data">{{ blockchain_data.transaction_hash }}</span>
+                    </div>
+                </div>
+                <div class="transaction-detail">
+                    <div class="detail-label">区块高度</div>
+                    <div class="detail-value">{{ blockchain_data.block_number }}</div>
+                </div>
+                <div class="transaction-detail">
+                    <div class="detail-label">交易时间</div>
+                    <div class="detail-value">{{ blockchain_data.timestamp }}</div>
+                </div>
+                <div class="transaction-detail">
+                    <div class="detail-label">发送方地址</div>
+                    <div class="detail-value">
+                        <span class="hash-data">{{ blockchain_data.from_address }}</span>
+                    </div>
+                </div>
+                <div class="transaction-detail">
+                    <div class="detail-label">接收方地址</div>
+                    <div class="detail-value">
+                        <span class="hash-data">{{ blockchain_data.to_address }}</span>
+                    </div>
+                </div>
+                <div class="transaction-detail">
+                    <div class="detail-label">Gas消耗</div>
+                    <div class="detail-value">{{ blockchain_data.gas_used }}</div>
+                </div>
+                <div class="transaction-detail">
+                    <div class="detail-label">交易状态</div>
+                    <div class="detail-value">
+                        <span class="badge bg-success">{{ blockchain_data.status }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <h4 class="mb-3">证书数据哈希</h4>
+            <div class="mb-4">
+                <div class="transaction-detail">
+                    <div class="detail-label">证书ID</div>
+                    <div class="detail-value">
+                        <span class="hash-data">{{ blockchain_data.certificate_id }}</span>
+                    </div>
+                </div>
+                <div class="transaction-detail">
+                    <div class="detail-label">数据哈希</div>
+                    <div class="detail-value">
+                        <span class="hash-data">{{ blockchain_data.data_hash }}</span>
+                    </div>
+                </div>
+                <div class="transaction-detail">
+                    <div class="detail-label">学生ID</div>
+                    <div class="detail-value">{{ blockchain_data.student_id }}</div>
+                </div>
+            </div>
+            
+            <h4 class="mb-3">证书数据</h4>
+            <div class="mb-4">
+                {% for key, value in blockchain_data.certificate_data.items() %}
+                <div class="cert-data-field">
+                    <strong>{{ key }}:</strong> {{ value }}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <h4 class="mb-3">验证过程</h4>
+            <div class="verification-process mb-4">
+                {% for step in blockchain_data.verification_steps %}
+                <div class="verification-step">
+                    <div class="step-number">{{ step.step }}</div>
+                    <div class="step-content">
+                        <div class="step-title">{{ step.name }}</div>
+                        <div class="step-description">{{ step.description }}</div>
+                        <div class="step-timestamp">
+                            <i class="far fa-clock me-1"></i> {{ step.timestamp }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            {% if qr_code_data %}
+            <div class="text-center mt-4">
+                <h4 class="mb-3">证书验证二维码</h4>
+                <div class="qr-code-container">
+                    <img src="{{ qr_code_data }}" alt="Verification QR Code" class="qr-code-img">
+                    <div class="small text-muted mb-2">扫描二维码验证证书真实性</div>
+                </div>
+                <a href="{{ url_for('system.verify_certificate', id=certificate.blockchain_certificate_id) }}" class="btn btn-sm btn-primary certificate-link" target="_blank">
+                    <i class="fas fa-shield-alt me-1"></i> 验证证书
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

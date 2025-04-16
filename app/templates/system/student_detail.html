@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+
+{% block title %}学生详情 - {{ student.name }}{% endblock %}
+
+{% block styles %}
+<style>
+    .student-profile {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+    
+    .student-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .student-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background-color: #3498db;
+        color: white;
+        font-size: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 20px;
+    }
+    
+    .student-info {
+        flex: 1;
+    }
+    
+    .student-name {
+        font-size: 24px;
+        margin-bottom: 5px;
+    }
+    
+    .student-id {
+        color: #666;
+        font-size: 14px;
+    }
+    
+    .certificate-stats {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0 -10px;
+    }
+    
+    .stat-card {
+        flex: 1;
+        min-width: 200px;
+        margin: 10px;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        text-align: center;
+    }
+    
+    .stat-title {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+    
+    .stat-value {
+        font-size: 24px;
+        font-weight: 500;
+    }
+    
+    .certificate-table {
+        margin-top: 20px;
+    }
+    
+    .type-badge {
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    
+    .type-skill {
+        background-color: #e3f7ea;
+        color: #18a85d;
+    }
+    
+    .type-language {
+        background-color: #e3f1f7;
+        color: #1887a8;
+    }
+    
+    .type-professional {
+        background-color: #f1e3f7;
+        color: #8718a8;
+    }
+    
+    .type-competition {
+        background-color: #f7e3e3;
+        color: #a81818;
+    }
+    
+    .type-other {
+        background-color: #e3e3e7;
+        color: #5d5d5d;
+    }
+    
+    .status-badge {
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+    
+    .actions-column {
+        width: 180px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>学生详情</h2>
+        <a href="{{ url_for('system.literacy_certificates') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> 返回证书列表
+        </a>
+    </div>
+    
+    <div class="student-profile">
+        <div class="student-header">
+            <div class="student-avatar">
+                {{ student.name[0] }}
+            </div>
+            <div class="student-info">
+                <h1 class="student-name">{{ student.name }}</h1>
+                <div class="student-id">学号: {{ student.student_id }}</div>
+                <div>班级: {{ student.class.name if student.class else '未分配' }}</div>
+                <div>专业: {{ student.class.major.name if student.class and student.class.major else '未分配' }}</div>
+            </div>
+            
+            <div>
+                <form method="POST" action="{{ url_for('system.run_certificate_rules_for_student', student_id=student.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-magic me-1"></i> 检查证书规则
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="certificate-stats">
+            <div class="stat-card">
+                <div class="stat-title">证书总数</div>
+                <div class="stat-value">{{ certificates|length }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">已批准证书</div>
+                <div class="stat-value">{{ approved_count }}</div>
+            </div>
+            {% for cert_type, count in cert_type_count.items() %}
+            <div class="stat-card">
+                <div class="stat-title">{{ cert_type }} 类型</div>
+                <div class="stat-value">{{ count }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0">证书列表</h3>
+        </div>
+        <div class="card-body">
+            {% if certificates %}
+            <div class="table-responsive certificate-table">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>证书名称</th>
+                            <th>类型</th>
+                            <th>颁发机构</th>
+                            <th>颁发日期</th>
+                            <th>状态</th>
+                            <th>区块链</th>
+                            <th class="actions-column">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cert in certificates %}
+                        <tr>
+                            <td>{{ cert.id }}</td>
+                            <td>{{ cert.name }}</td>
+                            <td>
+                                <span class="type-badge type-{{ cert.certificate_type }}">
+                                    {{ cert.certificate_type }}
+                                </span>
+                            </td>
+                            <td>{{ cert.issuer }}</td>
+                            <td>{{ cert.issue_date.strftime('%Y-%m-%d') if cert.issue_date else '未知' }}</td>
+                            <td>
+                                <span class="status-badge bg-{{ 'success' if cert.status == 'approved' else 'warning' if cert.status == 'pending' else 'danger' }} text-white">
+                                    {{ {'approved': '已批准', 'pending': '待审核', 'rejected': '已拒绝'}.get(cert.status, cert.status) }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if cert.blockchain_enabled %}
+                                <i class="fas fa-check-circle text-success"></i>
+                                {% else %}
+                                <i class="fas fa-times-circle text-danger"></i>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('system.view_certificate', id=cert.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i> 查看
+                                </a>
+                                {% if cert.blockchain_certificate_id %}
+                                <a href="{{ url_for('system.blockchain_certificate_details', certificate_id=cert.blockchain_certificate_id) }}" class="btn btn-sm btn-outline-info">
+                                    <i class="fas fa-cubes"></i> 区块链
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> 该学生暂无证书记录
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

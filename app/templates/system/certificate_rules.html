@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}证书规则管理{% endblock %}
+
+{% block styles %}
+<style>
+    .rule-card {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+    
+    .rule-header {
+        background-color: #f5f7fb;
+        padding: 15px 20px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .rule-content {
+        padding: 20px;
+    }
+    
+    .rule-section {
+        margin-bottom: 15px;
+    }
+    
+    .rule-section-title {
+        font-weight: 500;
+        color: #555;
+        margin-bottom: 8px;
+    }
+    
+    .status-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .status-active {
+        background-color: #e3f7ea;
+        color: #18a85d;
+    }
+    
+    .status-inactive {
+        background-color: #f7e3e3;
+        color: #a81818;
+    }
+    
+    .rule-actions {
+        margin-top: 15px;
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+    }
+    
+    .test-rule-form {
+        margin-top: 15px;
+        padding: 10px;
+        background-color: #f9f9f9;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>证书规则管理</h2>
+        <a href="{{ url_for('system.add_certificate_rule') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> 添加规则
+        </a>
+    </div>
+    
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i> 证书规则用于自动生成证书。当学生获得满足条件的证书后，系统将自动为其生成目标证书。
+    </div>
+    
+    <div class="row">
+        {% for rule in rules %}
+        <div class="col-md-6">
+            <div class="rule-card">
+                <div class="rule-header d-flex justify-content-between align-items-center">
+                    <h4 class="m-0">{{ rule.name }}</h4>
+                    <span class="status-badge {% if rule.is_active %}status-active{% else %}status-inactive{% endif %}">
+                        {{ '已启用' if rule.is_active else '已禁用' }}
+                    </span>
+                </div>
+                <div class="rule-content">
+                    <div class="rule-section">
+                        <div class="rule-section-title">规则描述</div>
+                        <p>{{ rule.description }}</p>
+                    </div>
+                    
+                    <div class="rule-section">
+                        <div class="rule-section-title">触发条件</div>
+                        <p>
+                            {% if rule.condition_type == 'count' %}
+                                需要拥有 <strong>{{ rule.required_certificate_count }}</strong> 个
+                                {% if rule.required_certificate_types %}
+                                    以下类型的证书：<strong>{{ rule.required_certificate_types }}</strong>
+                                {% else %}
+                                    任意类型的证书
+                                {% endif %}
+                            {% elif rule.condition_type == 'combination' %}
+                                需要拥有以下每种类型的证书各至少一个：<strong>{{ rule.required_certificate_types }}</strong>
+                            {% else %}
+                                {{ rule.condition_type }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    <div class="rule-section">
+                        <div class="rule-section-title">生成证书</div>
+                        <p>
+                            名称：<strong>{{ rule.target_certificate_name }}</strong><br>
+                            类型：<strong>{{ rule.target_certificate_type }}</strong><br>
+                            颁发机构：<strong>{{ rule.target_certificate_issuer }}</strong><br>
+                            区块链：<strong>{{ '自动上链' if rule.auto_blockchain else '不上链' }}</strong>
+                        </p>
+                    </div>
+                    
+                    <div class="test-rule-form">
+                        <form method="POST" action="{{ url_for('system.test_certificate_rule', rule_id=rule.id) }}">
+                            <div class="input-group">
+                                <input type="number" name="student_id" class="form-control" placeholder="输入学生ID进行测试" required>
+                                <button type="submit" class="btn btn-outline-secondary">测试规则</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="rule-actions d-flex justify-content-end">
+                        <a href="{{ url_for('system.edit_certificate_rule', rule_id=rule.id) }}" class="btn btn-sm btn-outline-primary me-2">
+                            <i class="fas fa-edit"></i> 编辑
+                        </a>
+                        <form method="POST" action="{{ url_for('system.delete_certificate_rule', rule_id=rule.id) }}" 
+                              onsubmit="return confirm('确定要删除这个规则吗？');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-trash"></i> 删除
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i> 暂无证书规则，请点击"添加规则"按钮创建。
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

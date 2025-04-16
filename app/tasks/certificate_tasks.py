@@ -10,6 +10,7 @@ from app.models.literacy import LiteracyCertificate
 from app.services.blockchain_certificate_service import BlockchainCertificateService
 from app.models.user import User
 from app.utils.logger import get_logger
+from app.services.certificate_auto_service import CertificateAutoService
 
 logger = get_logger('certificate_tasks')
 
@@ -57,6 +58,43 @@ def auto_approve_certificates():
         
         logger.info("Auto-approve certificates task completed")
 
+def auto_generate_certificates():
+    """根据规则自动生成证书"""
+    app = create_app()
+    with app.app_context():
+        try:
+            logger.info("开始自动生成证书任务")
+            
+            # 为所有学生检查证书规则
+            generated_count = CertificateAutoService.check_rules_for_all_students()
+            
+            logger.info(f"自动生成证书任务完成，生成了 {generated_count} 个新证书")
+            
+        except Exception as e:
+            logger.error(f"自动生成证书任务失败: {str(e)}")
+            
+def check_certificate_rules_for_student(student_id):
+    """为指定学生检查证书规则并生成证书"""
+    app = create_app()
+    with app.app_context():
+        try:
+            logger.info(f"为学生 {student_id} 检查证书规则")
+            
+            # 检查该学生的证书规则
+            generated_ids = CertificateAutoService.check_rules_for_student(student_id)
+            
+            if generated_ids:
+                logger.info(f"为学生 {student_id} 生成了 {len(generated_ids)} 个新证书: {generated_ids}")
+            else:
+                logger.info(f"学生 {student_id} 未满足任何证书生成规则")
+                
+            return generated_ids
+            
+        except Exception as e:
+            logger.error(f"为学生 {student_id} 检查证书规则失败: {str(e)}")
+            return []
+
 if __name__ == "__main__":
     # 可以直接运行此脚本来执行定时任务
-    auto_approve_certificates() 
+    auto_approve_certificates()
+    auto_generate_certificates() 

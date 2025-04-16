@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import text
 
 from app import db
@@ -16,6 +16,8 @@ from app.decorators import permission_required
 from app.services.blockchain_certificate_service import BlockchainCertificateService
 from app.models.student import Student
 from app.models.unity_cert import UnifiedCertificate
+from app.models.certificate_rule import CertificateRule
+from app.services.certificate_auto_service import CertificateAutoService
 
 system = Blueprint('system', __name__)
 
@@ -123,9 +125,13 @@ def literacy_certificates():
             # 查询并添加学生姓名 - 首先尝试使用关联对象
             if hasattr(cert, 'student') and cert.student:
                 cert_dict['student_name'] = cert.student.name
+                cert_dict['student_id'] = cert.student.id
             # 如果没有关联对象，则尝试根据ID查询
             elif hasattr(cert, 'student_id') and cert.student_id:
                 student = Student.query.get(cert.student_id)
+                # 添加学生ID到证书字典中，无论是否找到学生
+                cert_dict['student_id'] = cert.student_id
+                
                 if student:
                     cert_dict['student_name'] = student.name
                 else:
@@ -138,6 +144,7 @@ def literacy_certificates():
                         cert_dict['student_name'] = f'未知(ID:{cert.student_id})'
             else:
                 cert_dict['student_name'] = '未知'
+                cert_dict['student_id'] = None
             
             certificates.append(cert_dict)
     
@@ -199,6 +206,7 @@ def literacy_certificates():
                 'blockchain_certificate_id': cert_id,
                 'blockchain_verification_url': f'http://192.168.3.11:5000/system/verify_certificate?id={cert_id}',
                 'student_name': student_name,
+                'student_id': example_id,
                 'created_at': cert_apply_date.strftime('%Y-%m-%d'),
                 'is_example': True  # 标记为示例数据
             })
@@ -568,6 +576,143 @@ def verify_certificate():
     
     return render_template('system/verify_certificate.html', result=result)
 
+@system.route('/blockchain_certificate_details/<certificate_id>')
+def blockchain_certificate_details(certificate_id):
+    """显示区块链证书的详细过程数据"""
+    # 获取证书信息
+    certificate = UnifiedCertificate.query.filter_by(
+        blockchain_certificate_id=certificate_id
+    ).first()
+    
+    if not certificate:
+        flash('未找到该证书', 'error')
+        return redirect(url_for('system.verify_certificate'))
+    
+    # 获取学生信息
+    student = None
+    if certificate.student_id:
+        student = Student.query.get(certificate.student_id)
+    
+    # 构建区块链过程数据 - 在实际应用中，这些数据会从区块链获取
+    # 这里使用模拟数据，实际实现时应从区块链查询
+    if current_app.config.get('BLOCKCHAIN_SIMULATION_MODE', False):
+        # 使用模拟数据
+        blockchain_transaction_data = {
+            'transaction_hash': certificate.blockchain_transaction_hash,
+            'block_number': int(certificate.blockchain_transaction_hash[2:6], 16) if certificate.blockchain_transaction_hash else 0,
+            'timestamp': certificate.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'from_address': '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',  # 颁发者地址
+            'to_address': '0x3e9C2C03A6C2a68e7E9A67CC1480aa6481b8F0F2',  # 智能合约地址
+            'gas_used': 120000,
+            'status': 'Success',
+            'certificate_id': certificate.blockchain_certificate_id,
+            'data_hash': certificate.blockchain_data_hash,
+            'student_id': student.student_id if student else str(certificate.student_id),
+            'certificate_data': {
+                'name': certificate.name,
+                'type': certificate.certificate_type,
+                'issuer': certificate.issuer,
+                'issue_date': certificate.issue_date.strftime('%Y-%m-%d') if certificate.issue_date else '未知',
+                'certificate_no': certificate.certificate_no,
+                'description': certificate.description
+            },
+            'verification_steps': [
+                {
+                    'step': 1,
+                    'name': '身份验证',
+                    'description': '验证颁发者身份',
+                    'status': 'Success',
+                    'timestamp': (certificate.created_at - timedelta(seconds=30)).strftime('%Y-%m-%d %H:%M:%S')
+                },
+                {
+                    'step': 2,
+                    'name': '数据哈希验证',
+                    'description': '验证证书数据完整性',
+                    'status': 'Success',
+                    'timestamp': (certificate.created_at - timedelta(seconds=20)).strftime('%Y-%m-%d %H:%M:%S')
+                },
+                {
+                    'step': 3,
+                    'name': '区块链写入',
+                    'description': '将证书信息写入区块链',
+                    'status': 'Success',
+                    'timestamp': (certificate.created_at - timedelta(seconds=10)).strftime('%Y-%m-%d %H:%M:%S')
+                },
+                {
+                    'step': 4,
+                    'name': '区块确认',
+                    'description': '区块被网络确认',
+                    'status': 'Success',
+                    'timestamp': certificate.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                }
+            ]
+        }
+    else:
+        # 在实际应用中，这里应该调用区块链服务获取真实数据
+        # 这里使用模拟数据作为示例
+        blockchain_transaction_data = {
+            'transaction_hash': certificate.blockchain_transaction_hash,
+            'block_number': 12345678,
+            'timestamp': certificate.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'from_address': '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+            'to_address': '0x3e9C2C03A6C2a68e7E9A67CC1480aa6481b8F0F2',
+            'gas_used': 120000,
+            'status': 'Success',
+            'certificate_id': certificate.blockchain_certificate_id,
+            'data_hash': certificate.blockchain_data_hash,
+            'student_id': student.student_id if student else str(certificate.student_id),
+            'certificate_data': {
+                'name': certificate.name,
+                'type': certificate.certificate_type,
+                'issuer': certificate.issuer,
+                'issue_date': certificate.issue_date.strftime('%Y-%m-%d') if certificate.issue_date else '未知',
+                'certificate_no': certificate.certificate_no,
+                'description': certificate.description
+            },
+            'verification_steps': [
+                {
+                    'step': 1,
+                    'name': '身份验证',
+                    'description': '验证颁发者身份',
+                    'status': 'Success',
+                    'timestamp': '2024-04-07 10:29:30'
+                },
+                {
+                    'step': 2,
+                    'name': '数据哈希验证',
+                    'description': '验证证书数据完整性',
+                    'status': 'Success',
+                    'timestamp': '2024-04-07 10:29:40'
+                },
+                {
+                    'step': 3,
+                    'name': '区块链写入',
+                    'description': '将证书信息写入区块链',
+                    'status': 'Success',
+                    'timestamp': '2024-04-07 10:29:50'
+                },
+                {
+                    'step': 4,
+                    'name': '区块确认',
+                    'description': '区块被网络确认',
+                    'status': 'Success',
+                    'timestamp': '2024-04-07 10:30:00'
+                }
+            ]
+        }
+    
+    # 获取二维码数据
+    if certificate.blockchain_verification_url:
+        qr_code_data = BlockchainCertificateService.generate_certificate_qrcode(certificate.blockchain_verification_url)
+    else:
+        qr_code_data = None
+    
+    return render_template('system/blockchain_certificate_details.html', 
+                          certificate=certificate, 
+                          student=student,
+                          blockchain_data=blockchain_transaction_data,
+                          qr_code_data=qr_code_data)
+
 @system.route('/api/verify_certificate')
 def api_verify_certificate():
     """证书验证API"""
@@ -810,3 +955,220 @@ def fix_certificate_dates():
         flash(f'修复日期时发生错误: {str(e)}', 'danger')
     
     return redirect(url_for('system.literacy_certificates'))
+
+@system.route('/certificate_rules')
+@login_required
+def certificate_rules():
+    """证书规则管理页面"""
+    # 确保用户有权限
+    if not current_user.can(Permission.MANAGE_CERTIFICATES):
+        abort(403)
+    
+    # 获取所有规则
+    rules = CertificateRule.query.all()
+    
+    return render_template('system/certificate_rules.html', rules=rules)
+
+@system.route('/certificate_rules/add', methods=['GET', 'POST'])
+@login_required
+def add_certificate_rule():
+    """添加证书规则"""
+    # 确保用户有权限
+    if not current_user.can(Permission.MANAGE_CERTIFICATES):
+        abort(403)
+    
+    if request.method == 'POST':
+        try:
+            # 从表单获取数据
+            rule_data = {
+                'name': request.form.get('name'),
+                'description': request.form.get('description'),
+                'condition_type': request.form.get('condition_type'),
+                'required_certificate_types': request.form.get('required_certificate_types'),
+                'required_certificate_count': int(request.form.get('required_certificate_count', 1)),
+                'required_certificate_score': float(request.form.get('required_certificate_score', 0)) if request.form.get('required_certificate_score') else None,
+                'target_certificate_name': request.form.get('target_certificate_name'),
+                'target_certificate_type': request.form.get('target_certificate_type'),
+                'target_certificate_issuer': request.form.get('target_certificate_issuer'),
+                'target_certificate_description': request.form.get('target_certificate_description'),
+                'auto_blockchain': 'auto_blockchain' in request.form,
+                'is_active': 'is_active' in request.form
+            }
+            
+            # 创建规则
+            rule = CertificateRule.from_dict(rule_data)
+            db.session.add(rule)
+            db.session.commit()
+            
+            flash('证书规则添加成功', 'success')
+            return redirect(url_for('system.certificate_rules'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'添加规则失败: {str(e)}', 'error')
+    
+    # 证书类型列表
+    certificate_types = ['language', 'professional', 'competition', 'skill', 'other']
+    
+    return render_template('system/edit_certificate_rule.html', 
+                          rule=None, 
+                          certificate_types=certificate_types,
+                          is_edit=False)
+
+@system.route('/certificate_rules/edit/<int:rule_id>', methods=['GET', 'POST'])
+@login_required
+def edit_certificate_rule(rule_id):
+    """编辑证书规则"""
+    # 确保用户有权限
+    if not current_user.can(Permission.MANAGE_CERTIFICATES):
+        abort(403)
+    
+    rule = CertificateRule.query.get_or_404(rule_id)
+    
+    if request.method == 'POST':
+        try:
+            # 更新规则数据
+            rule.name = request.form.get('name')
+            rule.description = request.form.get('description')
+            rule.condition_type = request.form.get('condition_type')
+            rule.required_certificate_types = request.form.get('required_certificate_types')
+            rule.required_certificate_count = int(request.form.get('required_certificate_count', 1))
+            
+            if request.form.get('required_certificate_score'):
+                rule.required_certificate_score = float(request.form.get('required_certificate_score'))
+            
+            rule.target_certificate_name = request.form.get('target_certificate_name')
+            rule.target_certificate_type = request.form.get('target_certificate_type')
+            rule.target_certificate_issuer = request.form.get('target_certificate_issuer')
+            rule.target_certificate_description = request.form.get('target_certificate_description')
+            rule.auto_blockchain = 'auto_blockchain' in request.form
+            rule.is_active = 'is_active' in request.form
+            rule.updated_at = datetime.utcnow()
+            
+            db.session.commit()
+            
+            flash('证书规则更新成功', 'success')
+            return redirect(url_for('system.certificate_rules'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'更新规则失败: {str(e)}', 'error')
+    
+    # 证书类型列表
+    certificate_types = ['language', 'professional', 'competition', 'skill', 'other']
+    
+    return render_template('system/edit_certificate_rule.html', 
+                          rule=rule, 
+                          certificate_types=certificate_types,
+                          is_edit=True)
+
+@system.route('/certificate_rules/delete/<int:rule_id>', methods=['POST'])
+@login_required
+def delete_certificate_rule(rule_id):
+    """删除证书规则"""
+    # 确保用户有权限
+    if not current_user.can(Permission.MANAGE_CERTIFICATES):
+        abort(403)
+    
+    rule = CertificateRule.query.get_or_404(rule_id)
+    
+    try:
+        db.session.delete(rule)
+        db.session.commit()
+        flash('证书规则已删除', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'删除规则失败: {str(e)}', 'error')
+    
+    return redirect(url_for('system.certificate_rules'))
+
+@system.route('/certificate_rules/test/<int:rule_id>', methods=['POST'])
+@login_required
+def test_certificate_rule(rule_id):
+    """测试证书规则"""
+    # 确保用户有权限
+    if not current_user.can(Permission.MANAGE_CERTIFICATES):
+        abort(403)
+    
+    rule = CertificateRule.query.get_or_404(rule_id)
+    student_id = request.form.get('student_id')
+    
+    if not student_id:
+        flash('请提供学生ID', 'error')
+        return redirect(url_for('system.certificate_rules'))
+    
+    # 获取学生的证书
+    student = Student.query.get(student_id)
+    if not student:
+        flash(f'找不到学生ID: {student_id}', 'error')
+        return redirect(url_for('system.certificate_rules'))
+    
+    # 获取学生的证书
+    certificates = UnifiedCertificate.query.filter_by(
+        student_id=student_id,
+        status='approved'
+    ).all()
+    
+    # 测试规则
+    matches = CertificateAutoService._check_rule_condition(rule, certificates)
+    
+    if matches:
+        flash(f'学生 {student.name} 满足规则条件。可以生成证书。', 'success')
+    else:
+        flash(f'学生 {student.name} 不满足规则条件。', 'warning')
+    
+    return redirect(url_for('system.certificate_rules'))
+
+@system.route('/certificate_rules/run/<int:student_id>', methods=['POST'])
+@login_required
+def run_certificate_rules_for_student(student_id):
+    """为指定学生运行证书规则"""
+    # 确保用户有权限
+    if not current_user.can(Permission.MANAGE_CERTIFICATES):
+        abort(403)
+    
+    # 获取学生信息
+    student = Student.query.get_or_404(student_id)
+    
+    # 导入任务模块
+    from app.tasks.certificate_tasks import check_certificate_rules_for_student
+    
+    # 运行规则检查
+    generated_ids = check_certificate_rules_for_student(student_id)
+    
+    if generated_ids:
+        flash(f'为学生 {student.name} 生成了 {len(generated_ids)} 个新证书', 'success')
+    else:
+        flash(f'学生 {student.name} 未满足任何证书生成规则', 'info')
+    
+    # 重定向到学生详情页面
+    return redirect(url_for('system.student_detail', student_id=student_id))
+
+@system.route('/student/<int:student_id>')
+@login_required
+def student_detail(student_id):
+    """学生详情"""
+    # 确保用户有权限
+    if not current_user.can(Permission.MANAGE_CERTIFICATES) and not current_user.is_administrator():
+        abort(403)
+    
+    # 获取学生信息
+    student = Student.query.get_or_404(student_id)
+    
+    # 获取学生的证书
+    certificates = UnifiedCertificate.query.filter_by(student_id=student_id).all()
+    
+    # 获取已通过的证书类型统计
+    approved_certificates = [cert for cert in certificates if cert.status == 'approved']
+    cert_type_count = {}
+    for cert in approved_certificates:
+        if cert.certificate_type in cert_type_count:
+            cert_type_count[cert.certificate_type] += 1
+        else:
+            cert_type_count[cert.certificate_type] = 1
+    
+    return render_template('system/student_detail.html', 
+                          student=student, 
+                          certificates=certificates,
+                          approved_count=len(approved_certificates),
+                          cert_type_count=cert_type_count)

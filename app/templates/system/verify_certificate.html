@@ -91,11 +91,21 @@
 
         <div class="verification-card">
             <!-- 验证状态 -->
-            <div class="verification-status {% if result.success %}success{% else %}error{% endif %}">
-                <i class="fas {% if result.success %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i>
-                <h3 class="mb-2">{{ result.message }}</h3>
-                <p class="mb-0">证书ID: {{ result.certificate.id }}</p>
-            </div>
+            {% if result.success %}
+                <div class="verification-badge bg-success text-white">
+                    <i class="fas fa-check-circle me-2"></i> 验证成功
+                </div>
+            {% elif result.blockchain_data and not result.success %}
+                <div class="verification-badge bg-danger text-white">
+                    <i class="fas fa-times-circle me-2"></i> 验证失败
+                </div>
+            {% else %}
+                <div class="verification-badge bg-warning text-dark">
+                    <i class="fas fa-exclamation-triangle me-2"></i> 未找到证书
+                </div>
+            {% endif %}
+
+            <h4>{{ result.message }}</h4>
 
             <!-- 证书详情 -->
             <div class="verification-details">
@@ -188,6 +198,14 @@
                 {% endif %}
             </div>
         </div>
+
+        {% if result.success and result.certificate.blockchain_certificate_id %}
+        <div class="text-center mb-3">
+            <a href="{{ url_for('system.blockchain_certificate_details', certificate_id=result.certificate.blockchain_certificate_id) }}" class="btn btn-info">
+                <i class="fas fa-cubes me-1"></i> 查看区块链详情
+            </a>
+        </div>
+        {% endif %}
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
